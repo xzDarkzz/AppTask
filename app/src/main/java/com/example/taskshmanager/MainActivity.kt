@@ -166,7 +166,7 @@ fun App(modifier: Modifier = Modifier) {
 fun SelectDay(modifier: Modifier, daySelected: String, onPreviewsDay : () -> Unit, onAfterDay : () -> Unit){
     Row(modifier = Modifier.fillMaxWidth().height(50.dp), horizontalArrangement = Arrangement.SpaceBetween) {
         Box(modifier = Modifier.fillMaxHeight().width(150.dp)){
-            Text(modifier = Modifier.align(Alignment.CenterStart), text = daySelected, fontSize = 25.sp, color = Color(0XFF46485))
+            Text(modifier = Modifier.align(Alignment.CenterStart), text = daySelected, fontSize = 25.sp, color = Color.LightGray)
         }
         //Buttoms to changes the Day
         Box(modifier = Modifier){
