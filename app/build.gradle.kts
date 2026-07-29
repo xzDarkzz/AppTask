@@ -50,10 +50,12 @@ dependencies {
 
     // Material 3 & Íconos
     implementation(libs.androidx.compose.material3)
-    implementation("androidx.compose.material:material-icons-extended") // Para íconos como School, CollectionsBookmark, etc.
+    implementation("androidx.compose.material:material-icons-extended")
+    implementation(libs.androidx.material3) // Para íconos como School, CollectionsBookmark, etc.
 
     // Navegación en Compose (sin el generator antiguo que rompía el XML)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.ui)
 
     // Tests & Debug
     testImplementation(libs.junit)
