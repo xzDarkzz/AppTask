@@ -13,6 +13,10 @@ navigationCompose = "2.9.8"
 androidthings = "1.0"
 ui = "1.11.4"
 material3 = "1.4.0"
+room3 = "3.0.1"
+sqlite = "2.7.0"
+ksp = "2.2.10"
+
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -34,8 +38,11 @@ androidx-navigation-compose = { group = "androidx.navigation", name = "navigatio
 androidthings = { group = "com.google.android.things", name = "androidthings", version.ref = "androidthings" }
 androidx-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "ui" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
+androidx-sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqlite" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+
 

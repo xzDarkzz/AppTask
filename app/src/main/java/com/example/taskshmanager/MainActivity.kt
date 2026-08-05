@@ -24,13 +24,21 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
+import com.example.taskshmanager.Views.TaskView.Tasks
+import com.example.taskshmanager.data.AppDataBase
+import com.example.taskshmanager.data.TaskRepository
+import com.example.taskshmanager.ui.TaskViewModel
+import com.example.taskshmanager.ui.TaskViewModelFactory
 import com.example.taskshmanager.ui.theme.TaskShManagerTheme
 
 
@@ -40,7 +48,13 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             TaskShManagerTheme {
-                App(modifier = Modifier)
+                val context = LocalContext.current
+                val database = remember { AppDataBase.getDatabase(context) }
+                val repository = remember { TaskRepository(database.taskDao()) }
+                val viewModelTask: TaskViewModel = viewModel(
+                    factory = TaskViewModelFactory(repository)
+                )
+                App(modifier = Modifier, viewModelTask)
             }
         }
     }
@@ -49,7 +63,9 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun App(modifier: Modifier = Modifier) {
+fun App(modifier: Modifier = Modifier,
+        viewModelTask: TaskViewModel? = null
+) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     val navController = rememberNavController()
     val DaysOfTheWeek = listOf("Monday","Tuesday","Wednesday","Thursday","Friday","Saturday", "Sunday")
@@ -117,9 +133,13 @@ fun App(modifier: Modifier = Modifier) {
             }
         },
     ) { innerPadding ->
-        Tasks(modifier = Modifier
-            .padding(innerPadding)
-            .padding(10.dp), days = DaysOfTheWeek)
+        Tasks(
+            modifier = Modifier
+                .padding(innerPadding)
+                .padding(10.dp),
+            days = DaysOfTheWeek,
+            viewModelTask = viewModelTask
+        )
     }
 }
 

@@ -1,4 +1,4 @@
-package com.example.taskshmanager
+package com.example.taskshmanager.Views.TaskView
 
 import android.os.Build
 import android.util.Log
@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.input.InputTransformation
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.maxLength
@@ -51,8 +52,10 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -62,6 +65,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.taskshmanager.ComposableTimeManager
+import com.example.taskshmanager.TimeManager
+import com.example.taskshmanager.data.Domain.Task
+import com.example.taskshmanager.ui.TaskViewModel
 
 //Select The Day Of the tasks
 @Composable
@@ -97,7 +104,7 @@ fun SelectDay(modifier: Modifier, daySelected: String, onPreviewsDay : () -> Uni
 
 //These are the cards, they contend information of the user´s task
 @Composable
-fun CardsForTasks(modifier: Modifier){
+fun CardsForTasks(modifier: Modifier, title: String, description: String){
     OutlinedCard(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface,
@@ -113,8 +120,8 @@ fun CardsForTasks(modifier: Modifier){
             Column(modifier = Modifier
                 .fillMaxHeight()
                 .width(320.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text("TITLE", fontSize = 25.sp)
-                Text("Description", modifier = Modifier)
+                Text(title, fontSize = 25.sp)
+                Text(description, modifier = Modifier)
             }
             Column(
                 modifier = Modifier.fillMaxSize(),
@@ -243,7 +250,8 @@ fun BottomSheetTasks(
     sheetState: SheetState,
     DismissRequest: () -> Unit,
     OpenTimeSelector: (option: Int) -> Unit,
-    timeManager: TimeManager
+    timeManager: TimeManager,
+    DoneRequest : () -> Unit
 ){
     //Variables
     // ------------------------------------- //
@@ -296,7 +304,7 @@ fun BottomSheetTasks(
                     Button(onClick = {}) {
                         Text("Cancel")
                     }
-                    Button(onClick = {}) {
+                    Button(onClick = {DoneRequest()}) {
                         Text("Done")
                     }
                 }
@@ -315,15 +323,37 @@ fun Tasks(
     modifier: Modifier = Modifier,
     days: List<String>,
     viewModel: ComposableTimeManager = viewModel(),
-    timeManager: TimeManager = viewModel()
+    timeManager: TimeManager = viewModel(),
+    viewModelTask: TaskViewModel? = null
 ){
+
+    //Carga de todas las tareas
+   val tasksState = viewModelTask?.tasksState?.collectAsState(initial = emptyList())
+    val tasks = tasksState?.value
+    val localTasks = remember { mutableStateListOf<Task>() }
+
+
     var indexSelection by remember {mutableIntStateOf(0)}
     var daySelected = days[indexSelection]
+    //Limpieza y filtro de tareas
+    if(tasks?.isNotEmpty() == true){
+
+        localTasks.clear()
+        var newList = tasks.filter { it.day == daySelected }
+        localTasks.addAll(newList)
+
+    }
+    else{
+        localTasks.clear()
+    }
+
+
     var showBottomSheet by remember { mutableStateOf(false) }
     var optionDatePicker by remember { mutableIntStateOf(0)}
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true,
     )
+    //Seleccion de Dia de tareas
     fun SelectDayTask(option : Int){
         when(option){
             1 -> if (indexSelection < days.size -1){
@@ -339,6 +369,7 @@ fun Tasks(
         }
         daySelected = days[indexSelection]
     }
+    
     fun changeStateButtomSheet(){
         showBottomSheet = !showBottomSheet
     }
@@ -380,8 +411,8 @@ fun Tasks(
                     .fillMaxSize()
                     .padding(top = 15.dp)){
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(25.dp),) {
-                        items(3) { index ->
-                            CardsForTasks(modifier = Modifier)
+                        items(items = localTasks, key = {task -> task.id}) { task ->
+                            CardsForTasks(modifier = Modifier, task.title, task.description)
                         }
                     }
                 }
@@ -410,7 +441,8 @@ fun Tasks(
                     viewModel.openBottomSheet()
                     Log.d("DATE","${option} hola")
                 },
-                timeManager = timeManager
+                timeManager = timeManager,
+                DoneRequest = {}
             )
             if(viewModel.showAlert){
                 SelectDisplayOption(optionDatePicker)
