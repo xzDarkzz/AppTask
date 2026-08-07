@@ -1,9 +1,11 @@
 package com.example.taskshmanager
 
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -43,6 +45,7 @@ import com.example.taskshmanager.ui.theme.TaskShManagerTheme
 
 
 class MainActivity : ComponentActivity() {
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -61,6 +64,7 @@ class MainActivity : ComponentActivity() {
 }
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun App(modifier: Modifier = Modifier,
@@ -144,6 +148,7 @@ fun App(modifier: Modifier = Modifier,
 }
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Preview(
     showBackground = true,
     showSystemUi = true, // 👈 Dibuja la barra de estado y de gestos

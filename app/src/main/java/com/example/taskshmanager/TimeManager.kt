@@ -1,27 +1,45 @@
 package com.example.taskshmanager
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import java.util.Calendar
+import java.time.LocalDate
+import java.time.LocalDateTime
 
+@RequiresApi(Build.VERSION_CODES.O)
 open class TimeManager : ViewModel(){
-    var currentTime = Calendar.getInstance()
 
-    var date by mutableStateOf("${currentTime.get(Calendar.MONTH) + 1} / ${currentTime.get(Calendar.DAY_OF_MONTH)}")
-    var time by mutableStateOf("${currentTime.get(Calendar.HOUR_OF_DAY)} : ${currentTime.get(Calendar.MINUTE)}")
+    private var currentTime = LocalDateTime.now()
+
+    //Calendar
+    var month by mutableStateOf(currentTime.monthValue)
+    var dayOfMonth by mutableStateOf(currentTime.dayOfMonth)
+    var dayOfWeek by mutableStateOf(currentTime.dayOfWeek)
+    //Clock
+    var hour by mutableStateOf(currentTime.hour)
+    var minute by mutableStateOf(currentTime.minute)
+
+
+    var time by mutableStateOf("${hour} : ${minute}")
 
     fun ChangeHour(newHour: String){
         time = newHour
     }
-    fun ChangeDate(newDate: String){
-        date = newDate
+    fun ChangeDate(newDate: LocalDate){
+        month = newDate.monthValue
+        dayOfMonth = newDate.dayOfMonth
+        dayOfWeek = newDate.dayOfWeek
+
     }
     fun ReturnActualTime(){
-        val newCurrentTime = Calendar.getInstance()
-        time = "${newCurrentTime.get(Calendar.HOUR_OF_DAY)} : ${newCurrentTime.get(Calendar.MINUTE)}"
-        date = "${newCurrentTime.get(Calendar.MONTH) + 1} / ${newCurrentTime.get(Calendar.DAY_OF_MONTH)}"
+        currentTime = LocalDateTime.now()
+        month = currentTime.monthValue
+        dayOfMonth = currentTime.dayOfMonth
+        hour = currentTime.hour
+        minute = currentTime.minute
     }
 
 }

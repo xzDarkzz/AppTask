@@ -186,23 +186,24 @@ fun HourSelector(
 @Composable
 fun DateSelector(
     onDismissRequest: () -> Unit,
-    confirmButton: (newDate : String) -> Unit,
     dismissButton: () -> Unit,
-    timeManager: TimeManager
+    timeManager: TimeManager,
+    composableTimeManager: ComposableTimeManager
 ){
+
     val datePickerState = rememberDatePickerState()
+    fun confirmButton(){
+        val selectedDate = datePickerState.getSelectedDate()
+        if (selectedDate?.monthValue !=null || selectedDate?.dayOfMonth != null){
+            timeManager.ChangeDate(selectedDate)
+            composableTimeManager.closeBottomSheet()
+        }
+    }
     DatePickerDialog(
         onDismissRequest = {onDismissRequest()},
         confirmButton = {
             TextButton(onClick = {
-                val selectedDate = datePickerState.getSelectedDate()
-                var newDate = ""
-                if(selectedDate?.monthValue ==null || selectedDate?.dayOfMonth == null){
-                    newDate = timeManager.date
-                }else{
-                    newDate = "${selectedDate?.monthValue} / ${selectedDate?.dayOfMonth}"
-                }
-                confirmButton(newDate)
+                confirmButton()
             }) {
                 Text("OK")
             }
@@ -219,6 +220,7 @@ fun DateSelector(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun TimeSelector(
     modifier: Modifier,
@@ -230,7 +232,7 @@ fun TimeSelector(
         .fillMaxWidth()
         .height(58.dp), horizontalArrangement = Arrangement.SpaceAround) {
         TextButton(onClick = {OpenTimeSelector(2)}, modifier = Modifier) {
-            Text(timeManager.date, fontSize = 35.sp)
+            Text("${timeManager.month}/${timeManager.dayOfMonth}", fontSize = 35.sp)
         }
         VerticalDivider(thickness = 5.dp)
         TextButton(onClick = {OpenTimeSelector(1)}) {
@@ -243,6 +245,7 @@ fun TimeSelector(
 
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BottomSheetTasks(
@@ -251,9 +254,15 @@ fun BottomSheetTasks(
     DismissRequest: () -> Unit,
     OpenTimeSelector: (option: Int) -> Unit,
     timeManager: TimeManager,
-    DoneRequest : () -> Unit
+    DoneRequest : (title:String, description: String) -> Unit
 ){
     //Variables
+
+    val titleState = rememberTextFieldState(initialText = "")
+    val descriptionState = rememberTextFieldState(initialText = "")
+
+
+
     // ------------------------------------- //
     ModalBottomSheet(
         sheetState = sheetState,
@@ -268,16 +277,17 @@ fun BottomSheetTasks(
                     //This is for the title
                     OutlinedTextField(
                         modifier = Modifier.fillMaxWidth(),
-                        state = rememberTextFieldState(""),
+                        state = titleState,
                         label = { Text("TITLE") },
                         lineLimits = TextFieldLineLimits.SingleLine,
                         inputTransformation = InputTransformation.maxLength(20)
+
 
                     )
                     //This is for the description
                     OutlinedTextField(
                         modifier = Modifier.fillMaxWidth(),
-                        state = rememberTextFieldState(""),
+                        state = descriptionState,
                         label = { Text("Description") },
                         lineLimits = TextFieldLineLimits.MultiLine(2),
                         inputTransformation = InputTransformation.maxLength(100)
@@ -304,7 +314,13 @@ fun BottomSheetTasks(
                     Button(onClick = {}) {
                         Text("Cancel")
                     }
-                    Button(onClick = {DoneRequest()}) {
+                    Button(onClick = {
+                        var title = titleState.text.toString()
+                        var description = descriptionState.text.toString()
+                        DoneRequest(title,description)
+
+                    }
+                    ) {
                         Text("Done")
                     }
                 }
@@ -317,6 +333,7 @@ fun BottomSheetTasks(
 
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Tasks(
@@ -331,7 +348,12 @@ fun Tasks(
    val tasksState = viewModelTask?.tasksState?.collectAsState(initial = emptyList())
     val tasks = tasksState?.value
     val localTasks = remember { mutableStateListOf<Task>() }
-
+    //BottomSheet to add new task
+    var showBottomSheet by remember { mutableStateOf(false) }
+    var optionDatePicker by remember { mutableIntStateOf(0)}
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true,
+    )
 
     var indexSelection by remember {mutableIntStateOf(0)}
     var daySelected = days[indexSelection]
@@ -339,7 +361,7 @@ fun Tasks(
     if(tasks?.isNotEmpty() == true){
 
         localTasks.clear()
-        var newList = tasks.filter { it.day == daySelected }
+        var newList = tasks.filter { it.day.lowercase() == daySelected.lowercase() }
         localTasks.addAll(newList)
 
     }
@@ -348,11 +370,7 @@ fun Tasks(
     }
 
 
-    var showBottomSheet by remember { mutableStateOf(false) }
-    var optionDatePicker by remember { mutableIntStateOf(0)}
-    val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true,
-    )
+
     //Seleccion de Dia de tareas
     fun SelectDayTask(option : Int){
         when(option){
@@ -369,8 +387,15 @@ fun Tasks(
         }
         daySelected = days[indexSelection]
     }
-    
+
     fun changeStateButtomSheet(){
+        showBottomSheet = !showBottomSheet
+    }
+
+    //Add to the database the tasks
+
+    fun DoneAddTasks(title: String, description: String){
+        viewModelTask?.addTask(title,description,timeManager.dayOfWeek.toString())
         showBottomSheet = !showBottomSheet
     }
 
@@ -383,7 +408,7 @@ fun Tasks(
                 onDismissRequest = { viewModel.closeBottomSheet() },
                 confirmButton =
                     {
-                            selectedHour -> var newHour = selectedHour
+                        selectedHour -> var newHour = selectedHour
                         timeManager.ChangeHour(newHour)
                         Log.d("Hour","${newHour}")
                         viewModel.closeBottomSheet()
@@ -392,14 +417,9 @@ fun Tasks(
             )
             2 -> DateSelector(
                 onDismissRequest = { viewModel.closeBottomSheet() },
-                confirmButton =
-                    {
-                            selectedDate -> var newDate = selectedDate
-                        timeManager.ChangeDate(newDate)
-                        viewModel.closeBottomSheet()
-                    },
                 dismissButton = { viewModel.closeBottomSheet() },
-                timeManager = timeManager
+                timeManager = timeManager,
+                composableTimeManager = viewModel
             )
         }
     }
@@ -442,7 +462,8 @@ fun Tasks(
                     Log.d("DATE","${option} hola")
                 },
                 timeManager = timeManager,
-                DoneRequest = {}
+                DoneRequest = {title, description ->
+                    DoneAddTasks(title, description)}
             )
             if(viewModel.showAlert){
                 SelectDisplayOption(optionDatePicker)
