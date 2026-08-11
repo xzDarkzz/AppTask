@@ -3,7 +3,7 @@ package com.example.taskshmanager.Views.TaskView
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,17 +18,21 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.InputTransformation
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.maxLength
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Alarm
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.ArrowForwardIos
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -37,7 +41,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
@@ -61,12 +64,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.taskshmanager.ComposableTimeManager
-import com.example.taskshmanager.TimeManager
 import com.example.taskshmanager.data.Domain.Task
 import com.example.taskshmanager.ui.TaskViewModel
 
@@ -104,70 +109,171 @@ fun SelectDay(modifier: Modifier, daySelected: String, onPreviewsDay : () -> Uni
 
 //These are the cards, they contend information of the user´s task
 @Composable
-fun CardsForTasks(modifier: Modifier, title: String, description: String){
-    OutlinedCard(
+fun CardsForTasks(
+    modifier: Modifier,
+    title: String,
+    description: String,
+    dayOfTheMonth: String,
+    month: String,
+    year: String,
+    hour: String,
+    minute: String
+) {
+    // Definimos un color para la barra de acento (puedes cambiarlo por el de tu tema)
+    val accentColor = MaterialTheme.colorScheme.primary
+
+    Card(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface,
         ),
-        border = BorderStroke(1.dp, Color.Black),
-        modifier = Modifier
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp), // 💡 La sombra define la tarjeta, no una línea
+        modifier = modifier
             .fillMaxWidth()
-            .height(110.dp)
+            .height(115.dp)
     ) {
-        Row(modifier = Modifier
-            .fillMaxSize()
-            .padding(10.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-            Column(modifier = Modifier
-                .fillMaxHeight()
-                .width(320.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text(title, fontSize = 25.sp)
-                Text(description, modifier = Modifier)
-            }
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(15.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
+        // 2. Un Row principal que contendrá la barra de color a la izquierda y el contenido a la derecha
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                // 💡 Este truco obliga a la barra morada a redondearse en las esquinas izquierdas
+                .clip(RoundedCornerShape(12.dp))
+        ) {
 
+            // 3. LA BARRA DE ACENTO LATERAL
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .width(8.dp) // Grosor de la barra bonita
+                    .background(accentColor)
+            )
+
+            // 4. Contenedor del contenido (lo que ya tenías, ahora con paddings ajustados)
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(start = 12.dp, top = 12.dp, end = 12.dp, bottom = 10.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxHeight().weight(1f), // weight(1f) evita que el texto empuje los botones
+                    verticalArrangement = Arrangement.SpaceBetween
                 ) {
-                IconButton(onClick = {}, Modifier.size(27.dp)) {
-                    Icon(
-                        Icons.Default.Edit,
-                        contentDescription = "Delete this activity",
-                        modifier = Modifier.fillMaxSize()
+                    // Título con tipografía más marcada
+                    Text(
+                        text = title,
+                        fontSize = 20.sp, // 20sp mantiene fuerza sin romper el espacio
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
+
+                    // Descripción con un tono más suave para generar jerarquía
+                    Text(
+                        text = description,
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    Row(
+                        modifier = Modifier,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        // Fecha de la tarea
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(
+                                modifier = Modifier.size(16.dp),
+                                imageVector = Icons.Default.CalendarToday,
+                                contentDescription = "Calendar",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "${dayOfTheMonth}/${month}/${year}",
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        // Hora de la tarea (¡Ya con el formato que arreglamos antes!)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(
+                                modifier = Modifier.size(16.dp),
+                                imageVector = Icons.Default.Alarm,
+                                contentDescription = "Hour",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "${hour}:${minute}",
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
                 }
-                IconButton(onClick = {}, Modifier.size(27.dp)) {
-                    Icon(
-                        Icons.Default.Check,
-                        contentDescription = "Delete this activity",
-                        modifier = Modifier.fillMaxSize()
-                    )
+
+                // Columna de botones (idéntica a tu lógica)
+                Column(
+                    modifier = Modifier.fillMaxHeight(),
+                    verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    IconButton(onClick = {}, Modifier.size(28.dp)) {
+                        Icon(
+                            Icons.Default.Edit,
+                            contentDescription = "Edit this activity",
+                            modifier = Modifier.fillMaxSize(),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    IconButton(onClick = {}, Modifier.size(28.dp)) {
+                        Icon(
+                            Icons.Default.Check,
+                            contentDescription = "Complete this activity",
+                            modifier = Modifier.fillMaxSize(),
+                            tint = accentColor // El check ahora hace juego con la barra lateral
+                        )
+                    }
                 }
             }
-
-
         }
     }
 }
 
 //HourSelector
 
+
 @OptIn(ExperimentalMaterial3Api::class)
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HourSelector(
     modifier: Modifier,
     onDismissRequest : () -> Unit,
-    confirmButton : (hour: String) -> Unit,
-    dismissButton : () -> Unit
+    dismissButton : () -> Unit,
+    timeManager: TimeManager,
+    composableTimeManager: ComposableTimeManager
 ){
     val state = rememberTimePickerState()
+    fun confirmButton(){
+        val selectedHour = state
+        timeManager.ChangeHour(selectedHour)
+    }
+
     TimePickerDialog(
         title = { TimePickerDialogDefaults.Title(displayMode = TimePickerDisplayMode.Picker) },
         onDismissRequest = {onDismissRequest()},
         confirmButton = {
             TextButton(
                 onClick = {
-                    confirmButton("${state.hour} : ${state.minute}")
+                    confirmButton()
+                    composableTimeManager.closeBottomSheet()
                 },
             ) {
                 Text("Ok")
@@ -232,11 +338,27 @@ fun TimeSelector(
         .fillMaxWidth()
         .height(58.dp), horizontalArrangement = Arrangement.SpaceAround) {
         TextButton(onClick = {OpenTimeSelector(2)}, modifier = Modifier) {
-            Text("${timeManager.month}/${timeManager.dayOfMonth}", fontSize = 35.sp)
+            Text(
+                "${String.format("%02d", timeManager.dayOfMonth)}/${
+                    String.format(
+                        "%02d",
+                        timeManager.month
+                    )
+                }",
+                fontSize = 35.sp
+            )
         }
         VerticalDivider(thickness = 5.dp)
         TextButton(onClick = {OpenTimeSelector(1)}) {
-            Text(timeManager.time, fontSize = 35.sp)
+            Text(
+                "${String.format("%02d", timeManager.hour)}:${
+                    String.format(
+                        "%02d",
+                        timeManager.minute
+                    )
+                }",
+                fontSize = 35.sp
+            )
         }
     }
 
@@ -395,25 +517,28 @@ fun Tasks(
     //Add to the database the tasks
 
     fun DoneAddTasks(title: String, description: String){
-        viewModelTask?.addTask(title,description,timeManager.dayOfWeek.toString())
+        viewModelTask?.addTask(
+            title,
+            description,
+            day = timeManager.dayOfWeek.toString(),
+            dayOfTheMonth = String.format("%02d",timeManager.dayOfMonth),
+            month = String.format("%02d",timeManager.month),
+            year = timeManager.year.toString(),
+            hour = String.format("%02d",timeManager.hour),
+            minute = String.format("%02d",timeManager.minute),
+        )
         showBottomSheet = !showBottomSheet
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     @Composable
     fun SelectDisplayOption(option: Int){
         when(option){
             1 -> HourSelector(
                 modifier = Modifier,
                 onDismissRequest = { viewModel.closeBottomSheet() },
-                confirmButton =
-                    {
-                        selectedHour -> var newHour = selectedHour
-                        timeManager.ChangeHour(newHour)
-                        Log.d("Hour","${newHour}")
-                        viewModel.closeBottomSheet()
-                    },
-                dismissButton = { viewModel.closeBottomSheet() }
+                dismissButton = { viewModel.closeBottomSheet() },
+                timeManager = timeManager,
+                composableTimeManager = viewModel
             )
             2 -> DateSelector(
                 onDismissRequest = { viewModel.closeBottomSheet() },
@@ -432,7 +557,16 @@ fun Tasks(
                     .padding(top = 15.dp)){
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(25.dp),) {
                         items(items = localTasks, key = {task -> task.id}) { task ->
-                            CardsForTasks(modifier = Modifier, task.title, task.description)
+                            CardsForTasks(
+                                modifier = Modifier,
+                                task.title,
+                                task.description,
+                                task.dayOfTheMonth,
+                                task.month,
+                                task.year,
+                                task.hour,
+                                task.minute
+                            )
                         }
                     }
                 }
@@ -473,3 +607,10 @@ fun Tasks(
 
     }
 }
+
+@Preview
+@Composable
+fun GreetingPreview() {
+    CardsForTasks(modifier = Modifier,"hola","holaaaa","08","08","2026","08","26")
+}
+

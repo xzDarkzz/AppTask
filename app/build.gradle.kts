@@ -40,6 +40,8 @@ dependencies {
     // BOM administra automáticamente las versiones compatibles entre sí
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidthings)
+    implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.compose.ui.text)
 
     // Core & Compose Basicos
     implementation(libs.androidx.core.ktx)

@@ -30,6 +30,6 @@ class TaskRepository(
 }
 
 // Mappers
-fun TaskEntity.toDomain() = Task(id, title, description, day)
+fun TaskEntity.toDomain() = Task(id, title, description, day, dayOfTheMonth,month,year,hour,minute)
 
-fun Task.toEntity() = TaskEntity(id, title, description, day)
+fun Task.toEntity() = TaskEntity(id, title, description, day, dayOfTheMonth,month,year,hour,minute)

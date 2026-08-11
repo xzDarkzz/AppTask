@@ -21,12 +21,26 @@ class TaskViewModel(
             initialValue = emptyList()
         )
 
-    fun addTask(title: String, description: String, day: String) {
+    fun addTask(
+        title: String,
+        description: String,
+        day: String,
+        dayOfTheMonth: String,
+        month: String,
+        year: String,
+        hour: String,
+        minute: String
+    ) {
         viewModelScope.launch{
             val newTask = Task(
                 title = title,
                 description = description,
-                day = day
+                day = day,
+                dayOfTheMonth = dayOfTheMonth,
+                month = month,
+                year = year,
+                hour = hour,
+                minute = minute
             )
             repository.insertTask(newTask)
         }

@@ -16,6 +16,8 @@ material3 = "1.4.0"
 room3 = "3.0.1"
 sqlite = "2.7.0"
 ksp = "2.2.10"
+foundation = "1.11.4"
+uiText = "1.11.4"
 
 
 [libraries]
@@ -39,6 +41,8 @@ androidthings = { group = "com.google.android.things", name = "androidthings", v
 androidx-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "ui" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
 androidx-sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqlite" }
+androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
+androidx-compose-ui-text = { group = "androidx.compose.ui", name = "ui-text", version.ref = "uiText" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
