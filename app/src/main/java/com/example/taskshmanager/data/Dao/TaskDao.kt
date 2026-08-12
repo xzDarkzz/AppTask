@@ -18,7 +18,7 @@ interface TaskDao {
     suspend fun update(task: TaskEntity)
 
     @Delete
-    suspend fun delete(task: TaskEntity)
+    suspend fun delete(task : TaskEntity)
 
     //Seleccionar todas las tareas
     @Query("SELECT * FROM task_table ORDER BY id DESC")

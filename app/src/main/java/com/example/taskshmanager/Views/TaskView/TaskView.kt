@@ -49,6 +49,7 @@ import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TimePickerDialog
 import androidx.compose.material3.TimePickerDialogDefaults
 import androidx.compose.material3.TimePickerDisplayMode
+import androidx.compose.material3.TimePickerState
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.getSelectedDate
 import androidx.compose.material3.rememberDatePickerState
@@ -68,12 +69,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.taskshmanager.data.Domain.Task
 import com.example.taskshmanager.ui.TaskViewModel
+import java.time.LocalDate
 
 //Select The Day Of the tasks
 @Composable
@@ -84,7 +85,12 @@ fun SelectDay(modifier: Modifier, daySelected: String, onPreviewsDay : () -> Uni
         Box(modifier = Modifier
             .fillMaxHeight()
             .width(150.dp)){
-            Text(modifier = Modifier.align(Alignment.CenterStart), text = daySelected, fontSize = 25.sp, color = Color.LightGray)
+            Text(
+                modifier = Modifier.align(Alignment.CenterStart),
+                text = daySelected,
+                fontSize = 25.sp,
+                color = Color.LightGray
+            )
         }
         //Buttoms to changes the Day
         Box(modifier = Modifier){
@@ -108,19 +114,21 @@ fun SelectDay(modifier: Modifier, daySelected: String, onPreviewsDay : () -> Uni
 }
 
 //These are the cards, they contend information of the user´s task
+@RequiresApi(Build.VERSION_CODES.O)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CardsForTasks(
     modifier: Modifier,
-    title: String,
-    description: String,
-    dayOfTheMonth: String,
-    month: String,
-    year: String,
-    hour: String,
-    minute: String
+    task: Task,
+    EditTask: (time: TimePickerState,date: LocalDate, task: Task) -> Unit,
+    DoneTask: (task: Task) -> Unit
+
+
 ) {
-    // Definimos un color para la barra de acento (puedes cambiarlo por el de tu tema)
     val accentColor = MaterialTheme.colorScheme.primary
+
+
+
 
     Card(
         colors = CardDefaults.cardColors(
@@ -160,7 +168,7 @@ fun CardsForTasks(
                 ) {
                     // Título con tipografía más marcada
                     Text(
-                        text = title,
+                        text = task.title,
                         fontSize = 20.sp, // 20sp mantiene fuerza sin romper el espacio
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface,
@@ -170,7 +178,7 @@ fun CardsForTasks(
 
                     // Descripción con un tono más suave para generar jerarquía
                     Text(
-                        text = description,
+                        text = task.description,
                         fontSize = 14.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
@@ -193,13 +201,13 @@ fun CardsForTasks(
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(
-                                text = "${dayOfTheMonth}/${month}/${year}",
+                                text = "${task.dayOfTheMonth}/${task.month}/${task.year}",
                                 fontSize = 12.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
 
-                        // Hora de la tarea (¡Ya con el formato que arreglamos antes!)
+                        // Hora de la tarea (¡Ya con el formato quyeare arreglamos antes!)
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -211,7 +219,7 @@ fun CardsForTasks(
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(
-                                text = "${hour}:${minute}",
+                                text = "${task.hour}:${task.minute}",
                                 fontSize = 12.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -225,7 +233,19 @@ fun CardsForTasks(
                     verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    IconButton(onClick = {}, Modifier.size(28.dp)) {
+                    IconButton(onClick = {
+                        val time = TimePickerState(
+                            initialHour = task.hour.toInt(),
+                            initialMinute = task.minute.toInt(),
+                            is24Hour = true
+                        )
+                        val date = java.time.LocalDate.of(
+                            task.year.toInt(),            // Año de la tarea actual
+                            task.month.toInt(),           // Mes de la tarea actual
+                            task.dayOfTheMonth.toInt()    // Día de la tarea actual
+                        )
+                        EditTask(time,date, task)
+                    }, Modifier.size(28.dp)) {
                         Icon(
                             Icons.Default.Edit,
                             contentDescription = "Edit this activity",
@@ -233,7 +253,9 @@ fun CardsForTasks(
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                    IconButton(onClick = {}, Modifier.size(28.dp)) {
+                    IconButton(onClick = {
+                        DoneTask(task)
+                    }, Modifier.size(28.dp)) {
                         Icon(
                             Icons.Default.Check,
                             contentDescription = "Complete this activity",
@@ -376,12 +398,13 @@ fun BottomSheetTasks(
     DismissRequest: () -> Unit,
     OpenTimeSelector: (option: Int) -> Unit,
     timeManager: TimeManager,
-    DoneRequest : (title:String, description: String) -> Unit
+    DoneRequest : () -> Unit,
+    taskManager: TaskManagerInformation
 ){
     //Variables
 
-    val titleState = rememberTextFieldState(initialText = "")
-    val descriptionState = rememberTextFieldState(initialText = "")
+    val titleState = rememberTextFieldState(initialText = taskManager.title)
+    val descriptionState = rememberTextFieldState(initialText = taskManager.description)
 
 
 
@@ -439,7 +462,9 @@ fun BottomSheetTasks(
                     Button(onClick = {
                         var title = titleState.text.toString()
                         var description = descriptionState.text.toString()
-                        DoneRequest(title,description)
+                        var id = taskManager.id
+                        taskManager.UpdateInfo(title,description, id)
+                        DoneRequest()
 
                     }
                     ) {
@@ -463,15 +488,18 @@ fun Tasks(
     days: List<String>,
     viewModel: ComposableTimeManager = viewModel(),
     timeManager: TimeManager = viewModel(),
-    viewModelTask: TaskViewModel? = null
+    viewModelTask: TaskViewModel? = null,
+    taskManager : TaskManagerInformation = viewModel()
 ){
 
     //Carga de todas las tareas
-   val tasksState = viewModelTask?.tasksState?.collectAsState(initial = emptyList())
+    val tasksState = viewModelTask?.tasksState?.collectAsState(initial = emptyList())
     val tasks = tasksState?.value
     val localTasks = remember { mutableStateListOf<Task>() }
+
     //BottomSheet to add new task
     var showBottomSheet by remember { mutableStateOf(false) }
+    var editOption by remember { mutableStateOf(false) }
     var optionDatePicker by remember { mutableIntStateOf(0)}
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true,
@@ -516,18 +544,50 @@ fun Tasks(
 
     //Add to the database the tasks
 
-    fun DoneAddTasks(title: String, description: String){
-        viewModelTask?.addTask(
-            title,
-            description,
-            day = timeManager.dayOfWeek.toString(),
-            dayOfTheMonth = String.format("%02d",timeManager.dayOfMonth),
-            month = String.format("%02d",timeManager.month),
-            year = timeManager.year.toString(),
-            hour = String.format("%02d",timeManager.hour),
-            minute = String.format("%02d",timeManager.minute),
-        )
-        showBottomSheet = !showBottomSheet
+    fun DoneTasks(){
+        if(editOption){
+            viewModelTask?.editTask(
+                id = taskManager.id,
+                title = taskManager.title,
+                description = taskManager.description,
+                day = timeManager.dayOfWeek.toString(),
+                dayOfTheMonth = String.format("%02d",timeManager.dayOfMonth),
+                month = String.format("%02d",timeManager.month),
+                year = timeManager.year.toString(),
+                hour = String.format("%02d",timeManager.hour),
+                minute = String.format("%02d",timeManager.minute),
+            )
+            Log.d("editTask","" +
+                    "el titulo: ${taskManager.title}, " +
+                    "dia: ${timeManager.dayOfWeek}," +
+                    "la hora: ${timeManager.hour} " +
+                    "Su id : ${taskManager.id}")
+            editOption = false
+        }else{
+            viewModelTask?.addTask(
+                title = taskManager.title,
+                description = taskManager.description,
+                day = timeManager.dayOfWeek.toString(),
+                dayOfTheMonth = String.format("%02d",timeManager.dayOfMonth),
+                month = String.format("%02d",timeManager.month),
+                year = timeManager.year.toString(),
+                hour = String.format("%02d",timeManager.hour),
+                minute = String.format("%02d",timeManager.minute),
+            )
+        }
+
+        showBottomSheet = false
+    }
+
+    fun EditTask(time: TimePickerState,date: LocalDate, task: Task){
+        taskManager.UpdateInfo(task.title,task.description,task.id)
+        timeManager.ChangeHour(time)
+        timeManager.ChangeDate(date)
+        showBottomSheet = true
+        editOption = true
+    }
+    fun DoneTask(task: Task){
+        viewModelTask?.deleteTask(task)
     }
 
     @Composable
@@ -559,13 +619,13 @@ fun Tasks(
                         items(items = localTasks, key = {task -> task.id}) { task ->
                             CardsForTasks(
                                 modifier = Modifier,
-                                task.title,
-                                task.description,
-                                task.dayOfTheMonth,
-                                task.month,
-                                task.year,
-                                task.hour,
-                                task.minute
+                                task = task,
+                                EditTask = {time, date, task->
+                                    EditTask(time,date, task)
+                                },
+                                DoneTask = {task ->
+                                    DoneTask(task)
+                                }
                             )
                         }
                     }
@@ -575,8 +635,11 @@ fun Tasks(
         Box(modifier = Modifier.align(Alignment.BottomEnd)){
             Button(
                 onClick = {
+                    editOption = false
                     showBottomSheet = true
                     timeManager.ReturnActualTime()
+                    taskManager.EmptyInfo()
+
                 },
                 modifier = Modifier.size(60.dp),
                 contentPadding = PaddingValues(0.dp)
@@ -596,8 +659,10 @@ fun Tasks(
                     Log.d("DATE","${option} hola")
                 },
                 timeManager = timeManager,
-                DoneRequest = {title, description ->
-                    DoneAddTasks(title, description)}
+                DoneRequest = {
+                    DoneTasks()
+                },
+                taskManager
             )
             if(viewModel.showAlert){
                 SelectDisplayOption(optionDatePicker)
@@ -608,9 +673,4 @@ fun Tasks(
     }
 }
 
-@Preview
-@Composable
-fun GreetingPreview() {
-    CardsForTasks(modifier = Modifier,"hola","holaaaa","08","08","2026","08","26")
-}
 

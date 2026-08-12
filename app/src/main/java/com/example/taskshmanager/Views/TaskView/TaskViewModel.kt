@@ -46,6 +46,33 @@ class TaskViewModel(
         }
     }
 
+    fun editTask(
+        id: Int,
+        title: String,
+        description: String,
+        day: String,
+        dayOfTheMonth: String,
+        month: String,
+        year: String,
+        hour: String,
+        minute: String
+    ) {
+        viewModelScope.launch {
+            val updatedTask = Task(
+                id = id,
+                title = title,
+                description = description,
+                day = day,
+                dayOfTheMonth = dayOfTheMonth,
+                month = month,
+                year = year,
+                hour = hour,
+                minute = minute
+            )
+            repository.update(updatedTask)
+        }
+    }
+
     fun deleteTask(task: Task) {
         viewModelScope.launch{
             repository.delete(task)

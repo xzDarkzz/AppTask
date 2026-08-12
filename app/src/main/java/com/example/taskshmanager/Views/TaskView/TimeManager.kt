@@ -45,6 +45,7 @@ open class TimeManager : ViewModel(){
     fun ReturnActualTime(){
         currentTime = LocalDateTime.now()
         month = currentTime.monthValue
+        dayOfWeek = currentTime.dayOfWeek
         dayOfMonth = currentTime.dayOfMonth
         hour = currentTime.hour
         minute = currentTime.minute
