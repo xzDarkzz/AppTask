@@ -1,10 +1,14 @@
 package com.example.taskshmanager
 
+import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,12 +25,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -34,6 +43,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import com.example.taskshmanager.Views.TaskView.Tasks
@@ -42,6 +52,7 @@ import com.example.taskshmanager.data.TaskRepository
 import com.example.taskshmanager.ui.TaskViewModel
 import com.example.taskshmanager.ui.TaskViewModelFactory
 import com.example.taskshmanager.ui.theme.TaskShManagerTheme
+import kotlinx.coroutines.launch
 
 
 class MainActivity : ComponentActivity() {
@@ -57,7 +68,7 @@ class MainActivity : ComponentActivity() {
                 val viewModelTask: TaskViewModel = viewModel(
                     factory = TaskViewModelFactory(repository)
                 )
-                App(modifier = Modifier, viewModelTask)
+                App(modifier = Modifier, viewModelTask, context)
             }
         }
     }
@@ -65,14 +76,45 @@ class MainActivity : ComponentActivity() {
 
 
 @RequiresApi(Build.VERSION_CODES.O)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun App(modifier: Modifier = Modifier,
-        viewModelTask: TaskViewModel? = null
+        viewModelTask: TaskViewModel? = null,
+        context: Context
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     val navController = rememberNavController()
     val DaysOfTheWeek = listOf("Monday","Tuesday","Wednesday","Thursday","Friday","Saturday", "Sunday")
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    //Para los permisos
+    var permissionStatus by remember { mutableStateOf(false) }
+
+    //Modificar el acceso de los permisos
+    var permisssionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+        onResult = {isGranted ->
+            if(!isGranted){
+                scope.launch {
+                    snackbarHostState.showSnackbar("No se mostraran notificaciones")
+                }
+            }
+        }
+    )
+
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    fun RequestPermissionNotificactions(){
+        if(ContextCompat.checkSelfPermission(
+            context, android.Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED
+            ){
+            permisssionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+        } else{
+            permissionStatus = true
+        }
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -142,7 +184,9 @@ fun App(modifier: Modifier = Modifier,
                 .padding(innerPadding)
                 .padding(10.dp),
             days = DaysOfTheWeek,
-            viewModelTask = viewModelTask
+            viewModelTask = viewModelTask,
+            permissionStatus = permissionStatus,
+            SendPermissionNotification = { RequestPermissionNotificactions() }
         )
     }
 }
@@ -157,6 +201,6 @@ fun App(modifier: Modifier = Modifier,
 @Composable
 fun GreetingPreview() {
     TaskShManagerTheme {
-        App(modifier = Modifier)
+        App(modifier = Modifier, context =LocalContext.current)
     }
 }

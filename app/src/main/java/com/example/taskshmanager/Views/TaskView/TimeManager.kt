@@ -8,16 +8,32 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
 
 @RequiresApi(Build.VERSION_CODES.O)
+@OptIn(ExperimentalMaterial3Api::class)
 open class TimeManager : ViewModel(){
 
     private var currentTime = LocalDateTime.now()
 
+    val currentDayIndex: Int
+    init {
+        currentDayIndex = when(currentTime.dayOfWeek){
+            DayOfWeek.MONDAY -> 0
+            DayOfWeek.TUESDAY -> 1
+            DayOfWeek.WEDNESDAY -> 2
+            DayOfWeek.THURSDAY -> 3
+            DayOfWeek.FRIDAY -> 4
+            DayOfWeek.SATURDAY -> 5
+            DayOfWeek.SUNDAY -> 6
+        }
+    }
 
     var year by mutableStateOf(currentTime.year)
+
+
     //Calendar
     var month by mutableStateOf(currentTime.monthValue)
     var dayOfMonth by mutableStateOf(currentTime.dayOfMonth)
@@ -29,7 +45,6 @@ open class TimeManager : ViewModel(){
 
 
 
-    @OptIn(ExperimentalMaterial3Api::class)
     fun ChangeHour(newHour: TimePickerState){
         hour = newHour.hour
         minute = newHour.minute
@@ -49,6 +64,18 @@ open class TimeManager : ViewModel(){
         dayOfMonth = currentTime.dayOfMonth
         hour = currentTime.hour
         minute = currentTime.minute
+    }
+
+    fun CheckIndex(): Int {
+        when(dayOfWeek){
+            DayOfWeek.MONDAY -> return 0
+            DayOfWeek.TUESDAY -> return 1
+            DayOfWeek.WEDNESDAY -> return 2
+            DayOfWeek.THURSDAY -> return 3
+            DayOfWeek.FRIDAY -> return 4
+            DayOfWeek.SATURDAY -> return 5
+            DayOfWeek.SUNDAY -> return 6
+        }
     }
 
 }

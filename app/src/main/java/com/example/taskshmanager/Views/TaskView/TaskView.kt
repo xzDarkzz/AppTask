@@ -359,28 +359,50 @@ fun TimeSelector(
     Row(modifier = Modifier
         .fillMaxWidth()
         .height(58.dp), horizontalArrangement = Arrangement.SpaceAround) {
-        TextButton(onClick = {OpenTimeSelector(2)}, modifier = Modifier) {
-            Text(
-                "${String.format("%02d", timeManager.dayOfMonth)}/${
-                    String.format(
-                        "%02d",
-                        timeManager.month
-                    )
-                }",
-                fontSize = 35.sp
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(5.dp)
+        ){
+            Icon(
+                modifier = Modifier.size(25.dp),
+                imageVector = Icons.Default.CalendarToday,
+                contentDescription = "CalendarIcon",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
+            TextButton(onClick = {OpenTimeSelector(2)}, modifier = Modifier) {
+                Text(
+                    "${String.format("%02d", timeManager.dayOfMonth)}/${
+                        String.format(
+                            "%02d",
+                            timeManager.month
+                        )
+                    }",
+                    fontSize = 35.sp
+                )
+            }
         }
-        VerticalDivider(thickness = 5.dp)
-        TextButton(onClick = {OpenTimeSelector(1)}) {
-            Text(
-                "${String.format("%02d", timeManager.hour)}:${
-                    String.format(
-                        "%02d",
-                        timeManager.minute
-                    )
-                }",
-                fontSize = 35.sp
+        VerticalDivider(thickness = 2.dp)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
+            Icon(
+                modifier = Modifier.size(28.dp),
+                imageVector = Icons.Default.Alarm,
+                contentDescription = "AlarmIcon",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
+            TextButton(onClick = {OpenTimeSelector(1)}) {
+                Text(
+                    "${String.format("%02d", timeManager.hour)}:${
+                        String.format(
+                            "%02d",
+                            timeManager.minute
+                        )
+                    }",
+                    fontSize = 35.sp
+                )
+            }
         }
     }
 
@@ -489,7 +511,9 @@ fun Tasks(
     viewModel: ComposableTimeManager = viewModel(),
     timeManager: TimeManager = viewModel(),
     viewModelTask: TaskViewModel? = null,
-    taskManager : TaskManagerInformation = viewModel()
+    taskManager : TaskManagerInformation = viewModel(),
+    permissionStatus : Boolean,
+    SendPermissionNotification : () -> Unit
 ){
 
     //Carga de todas las tareas
@@ -505,7 +529,7 @@ fun Tasks(
         skipPartiallyExpanded = true,
     )
 
-    var indexSelection by remember {mutableIntStateOf(0)}
+    var indexSelection by remember {mutableIntStateOf(timeManager.currentDayIndex)}
     var daySelected = days[indexSelection]
     //Limpieza y filtro de tareas
     if(tasks?.isNotEmpty() == true){
@@ -523,6 +547,7 @@ fun Tasks(
 
     //Seleccion de Dia de tareas
     fun SelectDayTask(option : Int){
+
         when(option){
             1 -> if (indexSelection < days.size -1){
                 indexSelection ++
@@ -545,6 +570,8 @@ fun Tasks(
     //Add to the database the tasks
 
     fun DoneTasks(){
+
+        //Mandar a la base de datos
         if(editOption){
             viewModelTask?.editTask(
                 id = taskManager.id,
@@ -576,6 +603,10 @@ fun Tasks(
             )
         }
 
+        //EXPERIENCIA UI/UX
+        indexSelection = timeManager.CheckIndex()
+
+
         showBottomSheet = false
     }
 
@@ -592,6 +623,7 @@ fun Tasks(
 
     @Composable
     fun SelectDisplayOption(option: Int){
+        SendPermissionNotification()
         when(option){
             1 -> HourSelector(
                 modifier = Modifier,
