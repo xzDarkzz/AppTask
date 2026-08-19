@@ -9,8 +9,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import java.time.DayOfWeek
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZoneId
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -67,15 +69,26 @@ open class TimeManager : ViewModel(){
     }
 
     fun CheckIndex(): Int {
-        when(dayOfWeek){
-            DayOfWeek.MONDAY -> return 0
-            DayOfWeek.TUESDAY -> return 1
-            DayOfWeek.WEDNESDAY -> return 2
-            DayOfWeek.THURSDAY -> return 3
-            DayOfWeek.FRIDAY -> return 4
-            DayOfWeek.SATURDAY -> return 5
-            DayOfWeek.SUNDAY -> return 6
-        }
+        return dayOfWeek.value - 1
+    }
+    //Crea la seleccion en un localDateTime
+    fun getSelectedLocalDateTime(): LocalDateTime {
+        return LocalDateTime.of(year, month, dayOfMonth, hour, minute)
+    }
+    fun getSelectedTimeInMillis(): Long {
+        val selectedDateTime = getSelectedLocalDateTime()
+        return selectedDateTime
+            .atZone(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli()
+    }
+
+    fun setTimeFromMillis(millis: Long): LocalDateTime {
+        val dateTime = Instant.ofEpochMilli(millis)
+            .atZone(ZoneId.systemDefault())
+            .toLocalDateTime()
+        return dateTime
+
     }
 
 }

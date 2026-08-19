@@ -25,22 +25,14 @@ class TaskViewModel(
         title: String,
         description: String,
         day: String,
-        dayOfTheMonth: String,
-        month: String,
-        year: String,
-        hour: String,
-        minute: String
+        dueDateMillis : Long
     ) {
         viewModelScope.launch{
             val newTask = Task(
                 title = title,
                 description = description,
                 day = day,
-                dayOfTheMonth = dayOfTheMonth,
-                month = month,
-                year = year,
-                hour = hour,
-                minute = minute
+                dueDateMillis = dueDateMillis
             )
             repository.insertTask(newTask)
         }
@@ -51,11 +43,7 @@ class TaskViewModel(
         title: String,
         description: String,
         day: String,
-        dayOfTheMonth: String,
-        month: String,
-        year: String,
-        hour: String,
-        minute: String
+        dueDateMillis : Long
     ) {
         viewModelScope.launch {
             val updatedTask = Task(
@@ -63,11 +51,7 @@ class TaskViewModel(
                 title = title,
                 description = description,
                 day = day,
-                dayOfTheMonth = dayOfTheMonth,
-                month = month,
-                year = year,
-                hour = hour,
-                minute = minute
+                dueDateMillis = dueDateMillis
             )
             repository.update(updatedTask)
         }

@@ -75,6 +75,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.taskshmanager.data.Domain.Task
 import com.example.taskshmanager.ui.TaskViewModel
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 //Select The Day Of the tasks
 @Composable
@@ -121,7 +122,8 @@ fun CardsForTasks(
     modifier: Modifier,
     task: Task,
     EditTask: (time: TimePickerState,date: LocalDate, task: Task) -> Unit,
-    DoneTask: (task: Task) -> Unit
+    DoneTask: (task: Task) -> Unit,
+    dateTime : LocalDateTime
 
 
 ) {
@@ -201,7 +203,7 @@ fun CardsForTasks(
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(
-                                text = "${task.dayOfTheMonth}/${task.month}/${task.year}",
+                                text = "${String.format("%02d", dateTime.dayOfMonth)}/${String.format("%02d",dateTime.month.value)}/${dateTime.year}",
                                 fontSize = 12.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -219,7 +221,7 @@ fun CardsForTasks(
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(
-                                text = "${task.hour}:${task.minute}",
+                                text = "${String.format("%02d", dateTime.hour)}:${String.format("%02d",dateTime.minute)}",
                                 fontSize = 12.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -235,14 +237,14 @@ fun CardsForTasks(
                 ) {
                     IconButton(onClick = {
                         val time = TimePickerState(
-                            initialHour = task.hour.toInt(),
-                            initialMinute = task.minute.toInt(),
+                            initialHour = dateTime.hour.toInt(),
+                            initialMinute = dateTime.minute.toInt(),
                             is24Hour = true
                         )
                         val date = java.time.LocalDate.of(
-                            task.year.toInt(),            // Año de la tarea actual
-                            task.month.toInt(),           // Mes de la tarea actual
-                            task.dayOfTheMonth.toInt()    // Día de la tarea actual
+                            dateTime.year.toInt(),            // Año de la tarea actual
+                            dateTime.month,           // Mes de la tarea actual
+                            dateTime.dayOfMonth  // Día de la tarea actual
                         )
                         EditTask(time,date, task)
                     }, Modifier.size(28.dp)) {
@@ -567,10 +569,12 @@ fun Tasks(
         showBottomSheet = !showBottomSheet
     }
 
-    //Add to the database the tasks
+    //Add the task ti the local database and Make the notification
 
     fun DoneTasks(){
 
+        val dateMillis: Long = timeManager.getSelectedTimeInMillis()
+        Log.d("miliiss", "${dateMillis}")
         //Mandar a la base de datos
         if(editOption){
             viewModelTask?.editTask(
@@ -578,11 +582,7 @@ fun Tasks(
                 title = taskManager.title,
                 description = taskManager.description,
                 day = timeManager.dayOfWeek.toString(),
-                dayOfTheMonth = String.format("%02d",timeManager.dayOfMonth),
-                month = String.format("%02d",timeManager.month),
-                year = timeManager.year.toString(),
-                hour = String.format("%02d",timeManager.hour),
-                minute = String.format("%02d",timeManager.minute),
+                dueDateMillis = dateMillis
             )
             Log.d("editTask","" +
                     "el titulo: ${taskManager.title}, " +
@@ -595,11 +595,7 @@ fun Tasks(
                 title = taskManager.title,
                 description = taskManager.description,
                 day = timeManager.dayOfWeek.toString(),
-                dayOfTheMonth = String.format("%02d",timeManager.dayOfMonth),
-                month = String.format("%02d",timeManager.month),
-                year = timeManager.year.toString(),
-                hour = String.format("%02d",timeManager.hour),
-                minute = String.format("%02d",timeManager.minute),
+                dueDateMillis = dateMillis
             )
         }
 
@@ -649,6 +645,9 @@ fun Tasks(
                     .padding(top = 15.dp)){
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(25.dp),) {
                         items(items = localTasks, key = {task -> task.id}) { task ->
+
+                            val dateTime = timeManager.setTimeFromMillis(task.dueDateMillis)
+
                             CardsForTasks(
                                 modifier = Modifier,
                                 task = task,
@@ -657,7 +656,8 @@ fun Tasks(
                                 },
                                 DoneTask = {task ->
                                     DoneTask(task)
-                                }
+                                },
+                                dateTime
                             )
                         }
                     }
