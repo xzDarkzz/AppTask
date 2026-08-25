@@ -1,5 +1,6 @@
 package com.example.taskshmanager.Views.TaskView
 
+import android.content.Context
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -72,6 +73,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.taskshmanager.Views.TaskView.Managers.ComposableTimeManager
+import com.example.taskshmanager.Views.TaskView.Managers.TaskManagerInformation
+import com.example.taskshmanager.Views.TaskView.Managers.TimeManager
 import com.example.taskshmanager.data.Domain.Task
 import com.example.taskshmanager.ui.TaskViewModel
 import java.time.LocalDate
@@ -515,7 +519,8 @@ fun Tasks(
     viewModelTask: TaskViewModel? = null,
     taskManager : TaskManagerInformation = viewModel(),
     permissionStatus : Boolean,
-    SendPermissionNotification : () -> Unit
+    SendPermissionNotification : () -> Unit,
+    context: Context
 ){
 
     //Carga de todas las tareas
@@ -523,7 +528,7 @@ fun Tasks(
     val tasks = tasksState?.value
     val localTasks = remember { mutableStateListOf<Task>() }
 
-    //BottomSheet to add new task
+    //BottomSheet to add new tasks
     var showBottomSheet by remember { mutableStateOf(false) }
     var editOption by remember { mutableStateOf(false) }
     var optionDatePicker by remember { mutableIntStateOf(0)}
@@ -531,6 +536,7 @@ fun Tasks(
         skipPartiallyExpanded = true,
     )
 
+    //Operator tu indicate the UI day
     var indexSelection by remember {mutableIntStateOf(timeManager.currentDayIndex)}
     var daySelected = days[indexSelection]
     //Limpieza y filtro de tareas
@@ -547,7 +553,7 @@ fun Tasks(
 
 
 
-    //Seleccion de Dia de tareas
+    //Select an a Day
     fun SelectDayTask(option : Int){
 
         when(option){
@@ -569,10 +575,10 @@ fun Tasks(
         showBottomSheet = !showBottomSheet
     }
 
-    //Add the task ti the local database and Make the notification
+    //Add the task to the local database and Make the notification
 
     fun DoneTasks(){
-
+        var id: Long?
         val dateMillis: Long = timeManager.getSelectedTimeInMillis()
         Log.d("miliiss", "${dateMillis}")
         //Mandar a la base de datos
@@ -595,7 +601,8 @@ fun Tasks(
                 title = taskManager.title,
                 description = taskManager.description,
                 day = timeManager.dayOfWeek.toString(),
-                dueDateMillis = dateMillis
+                dueDateMillis = dateMillis,
+                context
             )
         }
 

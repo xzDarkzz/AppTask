@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface TaskDao {
     @Insert
-    suspend fun insert(task: TaskEntity)
+    suspend fun insert(task: TaskEntity) : Long
 
     @Update
     suspend fun update(task: TaskEntity)
@@ -23,5 +23,7 @@ interface TaskDao {
     //Seleccionar todas las tareas
     @Query("SELECT * FROM task_table ORDER BY id DESC")
     fun getAllTask(): Flow<List<TaskEntity>>
+    @Query("SELECT * FROM task_table WHERE id = :taskId LIMIT 1")
+    suspend fun getTaskById(taskId: Int): TaskEntity?
 
 }

@@ -96,6 +96,7 @@ fun App(modifier: Modifier = Modifier,
     var permisssionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
         onResult = {isGranted ->
+            permissionStatus = isGranted
             if(!isGranted){
                 scope.launch {
                     snackbarHostState.showSnackbar("No se mostraran notificaciones")
@@ -186,7 +187,8 @@ fun App(modifier: Modifier = Modifier,
             days = DaysOfTheWeek,
             viewModelTask = viewModelTask,
             permissionStatus = permissionStatus,
-            SendPermissionNotification = { RequestPermissionNotificactions() }
+            SendPermissionNotification = { RequestPermissionNotificactions() },
+            context = context
         )
     }
 }

@@ -1,8 +1,10 @@
 package com.example.taskshmanager.ui
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.taskshmanager.Views.TaskView.AlarmScheduler
 import com.example.taskshmanager.data.Domain.Task
 import com.example.taskshmanager.data.TaskRepository
 import kotlinx.coroutines.flow.SharingStarted
@@ -25,8 +27,9 @@ class TaskViewModel(
         title: String,
         description: String,
         day: String,
-        dueDateMillis : Long
-    ) {
+        dueDateMillis : Long,
+        context: Context
+    ){
         viewModelScope.launch{
             val newTask = Task(
                 title = title,
@@ -34,8 +37,27 @@ class TaskViewModel(
                 day = day,
                 dueDateMillis = dueDateMillis
             )
-            repository.insertTask(newTask)
+            val ahora = System.currentTimeMillis()
+            val unDiaEnMillis = 24 * 60 * 60 * 1000L
+            val unaHoraEnMillis = 60 * 60 * 1000L
+            val treintaMinutosEnMillis = 30*60*1000L
+            val cincoMinutosEnMilis = 5*60*1000L
+            val unMinutoEnMilis = 60*1000L
+            val tiempoRestante = dueDateMillis - ahora
+            val id = repository.insertTask(newTask).toInt()
+            val nextAlarm = when{
+                tiempoRestante < cincoMinutosEnMilis -> {ahora + unMinutoEnMilis}
+                tiempoRestante < treintaMinutosEnMillis -> {ahora + cincoMinutosEnMilis}
+                tiempoRestante < unaHoraEnMillis -> {ahora + treintaMinutosEnMillis}
+                tiempoRestante < unDiaEnMillis -> {ahora + unaHoraEnMillis}
+                else -> {
+                    ahora + unDiaEnMillis
+                }
+            }
+
+            AlarmScheduler.scheduleTaskAlarm(context, id, nextAlarm)
         }
+
     }
 
     fun editTask(

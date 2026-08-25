@@ -15,9 +15,12 @@ class TaskRepository(
             entities.map { it.toDomain() }
         }
     }
+    suspend fun getTaskById(id: Int): Task? {
+        return taskDao.getTaskById(id)?.toDomain()
+    }
 
-    suspend fun insertTask(task: Task) {
-        taskDao.insert(task.toEntity())
+    suspend fun insertTask(task: Task) : Long {
+        return taskDao.insert(task.toEntity())
     }
 
     suspend fun update(task: Task) {

@@ -1,4 +1,4 @@
-package com.example.taskshmanager.Views.TaskView
+package com.example.taskshmanager.Views.TaskView.Managers
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
