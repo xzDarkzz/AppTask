@@ -16,6 +16,47 @@ class TaskViewModel(
     private val repository: TaskRepository
 ) : ViewModel() {
 
+    fun agendarNotificacion(dueDateMillis: Long, id: Int, context: Context){
+        val ahora = System.currentTimeMillis()
+        val dosDiaEnMillis = 48 * 60 * 60 * 1000L
+        val unDiaEnMillis = 24 * 60 * 60 * 1000L
+        val doceHorasEnMilis = 12*60 * 60 * 1000L
+        val unaHoraEnMillis = 60 * 60 * 1000L
+        val treintaMinutosEnMillis = 30*60*1000L
+        val diezMinutosEnMilis = 10*60*1000L
+        val cincoMinutosEnMilis = 5*60*1000L
+        val unMinutoEnMilis = 60*1000L
+        val tiempoRestante = dueDateMillis - ahora
+        val nextAlarm = when{
+            tiempoRestante <= cincoMinutosEnMilis -> {
+                ahora + unMinutoEnMilis
+            }
+            tiempoRestante <= diezMinutosEnMilis -> {
+                dueDateMillis - cincoMinutosEnMilis
+            }
+            tiempoRestante <= treintaMinutosEnMillis ->{
+                dueDateMillis - diezMinutosEnMilis
+            }
+            tiempoRestante <= unaHoraEnMillis -> {
+                dueDateMillis - treintaMinutosEnMillis
+            }
+            tiempoRestante <= doceHorasEnMilis -> {
+                dueDateMillis - unaHoraEnMillis
+            }
+            tiempoRestante <= unDiaEnMillis -> {
+                dueDateMillis - doceHorasEnMilis
+            }
+            tiempoRestante <= dosDiaEnMillis -> {
+                dueDateMillis - unDiaEnMillis
+            }
+
+            else -> {
+                ahora + unDiaEnMillis
+            }
+        }
+
+        AlarmScheduler.scheduleTaskAlarm(context, id, nextAlarm)
+    }
     val tasksState: StateFlow<List<Task>> = repository.getAllTasks()
         .stateIn(
             scope = viewModelScope,
@@ -38,18 +79,39 @@ class TaskViewModel(
                 dueDateMillis = dueDateMillis
             )
             val ahora = System.currentTimeMillis()
+            val dosDiaEnMillis = 48 * 60 * 60 * 1000L
             val unDiaEnMillis = 24 * 60 * 60 * 1000L
+            val doceHorasEnMilis = 12*60 * 60 * 1000L
             val unaHoraEnMillis = 60 * 60 * 1000L
             val treintaMinutosEnMillis = 30*60*1000L
+            val diezMinutosEnMilis = 10*60*1000L
             val cincoMinutosEnMilis = 5*60*1000L
             val unMinutoEnMilis = 60*1000L
             val tiempoRestante = dueDateMillis - ahora
             val id = repository.insertTask(newTask).toInt()
             val nextAlarm = when{
-                tiempoRestante < cincoMinutosEnMilis -> {ahora + unMinutoEnMilis}
-                tiempoRestante < treintaMinutosEnMillis -> {ahora + cincoMinutosEnMilis}
-                tiempoRestante < unaHoraEnMillis -> {ahora + treintaMinutosEnMillis}
-                tiempoRestante < unDiaEnMillis -> {ahora + unaHoraEnMillis}
+                tiempoRestante <= cincoMinutosEnMilis -> {
+                    ahora + unMinutoEnMilis
+                }
+                tiempoRestante <= diezMinutosEnMilis -> {
+                   dueDateMillis - cincoMinutosEnMilis
+                }
+                tiempoRestante <= treintaMinutosEnMillis ->{
+                    dueDateMillis - diezMinutosEnMilis
+                }
+                tiempoRestante <= unaHoraEnMillis -> {
+                    dueDateMillis - treintaMinutosEnMillis
+                }
+                tiempoRestante <= doceHorasEnMilis -> {
+                    dueDateMillis - unaHoraEnMillis
+                }
+                tiempoRestante <= unDiaEnMillis -> {
+                    dueDateMillis - doceHorasEnMilis
+                }
+                tiempoRestante <= dosDiaEnMillis -> {
+                    dueDateMillis - unDiaEnMillis
+                }
+
                 else -> {
                     ahora + unDiaEnMillis
                 }

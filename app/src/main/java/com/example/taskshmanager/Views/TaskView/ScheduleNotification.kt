@@ -43,7 +43,12 @@ class ScheduleNotification : BroadcastReceiver() {
 
 
             //Las convierte en horas
-            val minutosRestantes = duracion.toMinutes()
+            val segundosRestantes = duracion.seconds
+            val minutosRestantes = if (segundosRestantes > 0) {
+                (segundosRestantes + 59) / 60
+            } else {
+                0
+            }
             val horasRestantes = duracion.toHours()
             Log.d("HorasRestantes", "${duracion.toMinutes()}")
 
@@ -52,17 +57,17 @@ class ScheduleNotification : BroadcastReceiver() {
                 minutosRestantes <= 0 -> {
                     Pair("La tarea ${task.title} ha vencido", "La tarea '${task.title}' ha llegado a su fecha límite.")
                 }
-                minutosRestantes < 5 -> {
+                minutosRestantes <= 5 -> {
                     Pair("Recordatorio Urgente YA NO HAY TIEMPO", "${task.title.uppercase()} Esta apunto de finalizar, tienes:  ${minutosRestantes} minutos restantes")
                 }
-                minutosRestantes < 30 -> {
+                minutosRestantes <= 30 -> {
                     Pair("Rapido todavia hay tiempo", "La tarea : ${task.title} terminara en: ${minutosRestantes} minutos(m)")
                 }
-                minutosRestantes < 60 -> {
+                minutosRestantes <= 60 -> {
                     val minutosRestantes = duracion.toMinutes()
                     Pair("Estas todavia a tiempo", "La tarea : ${task.title} terminara en: ${minutosRestantes} minutos(m)")
                 }
-                horasRestantes < 24 -> {
+                horasRestantes <= 24 -> {
                     Pair("Tranquilo, estas a tiempo: ${task.title}", "Le falta $horasRestantes hora(s) para ser entregada.")
                 }
                 else -> {
@@ -77,17 +82,23 @@ class ScheduleNotification : BroadcastReceiver() {
             // 3. Re-programar el SIGUIENTE levantamiento en cadena (si aún no vence)
             val ahoraMillis = System.currentTimeMillis()
             if (ahoraMillis < task.dueDateMillis) {
+                val dosDiaEnMillis = 48 * 60 * 60 * 1000L
                 val unDiaEnMillis = 24 * 60 * 60 * 1000L
+                val doceHorasEnMilis = 12*60 * 60 * 1000L
                 val unaHoraEnMillis = 60 * 60 * 1000L
                 val treintaMinutosEnMillis = 30*60*1000L
+                val diezMinutosEnMilis = 10*60*1000L
                 val cincoMinutosEnMilis = 5*60*1000L
                 val unMinutoEnMilis = 60*1000L
 
                 val proximoLevantamientoMillis = when {
-                    minutosRestantes < 5 -> {ahoraMillis + unMinutoEnMilis}
-                    minutosRestantes < 15 -> {ahoraMillis + cincoMinutosEnMilis}
-                    minutosRestantes < 60 -> {ahoraMillis + treintaMinutosEnMillis}
-                    horasRestantes < 24 -> {ahoraMillis + unaHoraEnMillis}
+                    minutosRestantes <= 5 -> {ahoraMillis + unMinutoEnMilis}
+                    minutosRestantes <= 10 -> {task.dueDateMillis - cincoMinutosEnMilis}
+                    minutosRestantes <= 30 -> {task.dueDateMillis - diezMinutosEnMilis}
+                    minutosRestantes <= 60 -> {task.dueDateMillis - treintaMinutosEnMillis}
+                    horasRestantes <= 12 -> {task.dueDateMillis - unaHoraEnMillis}
+                    horasRestantes <= 24 -> {task.dueDateMillis - doceHorasEnMilis}
+                    horasRestantes <= 48 -> {task.dueDateMillis - unDiaEnMillis}
                     else -> {
                         ahoraMillis + unDiaEnMillis
                     }
@@ -108,8 +119,7 @@ class ScheduleNotification : BroadcastReceiver() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 channelId,
-                "Recordatorios de Tareas",
-                NotificationManager.IMPORTANCE_HIGH
+                "Recordatorios de Tareas",NotificationManager.IMPORTANCE_HIGH
             )
             notificationManager.createNotificationChannel(channel)
         }
