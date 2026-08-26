@@ -23,6 +23,10 @@ interface TaskDao {
     //Seleccionar todas las tareas
     @Query("SELECT * FROM task_table ORDER BY id DESC")
     fun getAllTask(): Flow<List<TaskEntity>>
+
+    @Query("SELECT * FROM task_table ORDER BY id DESC")
+    fun getAllTaskList() : List<TaskEntity>
+
     @Query("SELECT * FROM task_table WHERE id = :taskId LIMIT 1")
     suspend fun getTaskById(taskId: Int): TaskEntity?
 

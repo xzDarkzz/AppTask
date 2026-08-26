@@ -42,13 +42,7 @@ class ScheduleNotification : BroadcastReceiver() {
             val duracion = Duration.between(ahora, fechaEntrega)
 
 
-            //Las convierte en horas
-            val segundosRestantes = duracion.seconds
-            val minutosRestantes = if (segundosRestantes > 0) {
-                (segundosRestantes + 59) / 60
-            } else {
-                0
-            }
+            val minutosRestantes = duracion.toMinutes()
             val horasRestantes = duracion.toHours()
             Log.d("HorasRestantes", "${duracion.toMinutes()}")
 
@@ -82,17 +76,17 @@ class ScheduleNotification : BroadcastReceiver() {
             // 3. Re-programar el SIGUIENTE levantamiento en cadena (si aún no vence)
             val ahoraMillis = System.currentTimeMillis()
             if (ahoraMillis < task.dueDateMillis) {
-                val dosDiaEnMillis = 48 * 60 * 60 * 1000L
                 val unDiaEnMillis = 24 * 60 * 60 * 1000L
                 val doceHorasEnMilis = 12*60 * 60 * 1000L
                 val unaHoraEnMillis = 60 * 60 * 1000L
                 val treintaMinutosEnMillis = 30*60*1000L
                 val diezMinutosEnMilis = 10*60*1000L
                 val cincoMinutosEnMilis = 5*60*1000L
-                val unMinutoEnMilis = 60*1000L
+                val dosMinutoEnMilis = 2*60*1000L
 
                 val proximoLevantamientoMillis = when {
-                    minutosRestantes <= 5 -> {ahoraMillis + unMinutoEnMilis}
+                    minutosRestantes <= 2 -> {task.dueDateMillis}
+                    minutosRestantes <= 5 -> {task.dueDateMillis - dosMinutoEnMilis}
                     minutosRestantes <= 10 -> {task.dueDateMillis - cincoMinutosEnMilis}
                     minutosRestantes <= 30 -> {task.dueDateMillis - diezMinutosEnMilis}
                     minutosRestantes <= 60 -> {task.dueDateMillis - treintaMinutosEnMillis}
@@ -128,7 +122,8 @@ class ScheduleNotification : BroadcastReceiver() {
             .setSmallIcon(android.R.drawable.ic_popup_reminder) // Cambiar por el ícono de tu app
             .setContentTitle(titulo)
             .setContentText(mensaje)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setPriority(NotificationCompat.PRIORITY_MAX)
+            .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setAutoCancel(true)
             .build()
 

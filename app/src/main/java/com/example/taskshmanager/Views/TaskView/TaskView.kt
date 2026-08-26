@@ -588,7 +588,8 @@ fun Tasks(
                 title = taskManager.title,
                 description = taskManager.description,
                 day = timeManager.dayOfWeek.toString(),
-                dueDateMillis = dateMillis
+                dueDateMillis = dateMillis,
+                context = context
             )
             Log.d("editTask","" +
                     "el titulo: ${taskManager.title}, " +

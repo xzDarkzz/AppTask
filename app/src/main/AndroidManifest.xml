@@ -4,6 +4,7 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     
 
     <application
@@ -19,6 +20,23 @@
             android:name='.Views.TaskView.ScheduleNotification'
             android:enabled="true"
             android:exported="false" />
+        <receiver
+            android:name=".Views.TaskView.BootReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <!-- Cuando se reinicia el teléfono -->
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+
+            <!-- Filtro exclusivo para actualización de la App -->
+            <intent-filter>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.PACKAGE_REPLACED" />
+                <data android:scheme="package" />
+            </intent-filter>
+        </receiver>
         <activity
             android:name=".MainActivity"
             android:exported="true"
