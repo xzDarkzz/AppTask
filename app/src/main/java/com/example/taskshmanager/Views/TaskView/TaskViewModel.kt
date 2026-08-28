@@ -1,11 +1,11 @@
 package com.example.taskshmanager.ui
 
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.taskshmanager.Views.TaskView.AlarmScheduler
+import com.example.taskshmanager.Views.TaskView.Managers.NotificationManager
 import com.example.taskshmanager.data.Domain.Task
 import com.example.taskshmanager.data.TaskRepository
 import kotlinx.coroutines.flow.SharingStarted
@@ -17,50 +17,6 @@ class TaskViewModel(
     private val repository: TaskRepository
 ) : ViewModel() {
 
-    fun agendarNotificacion(dueDateMillis: Long): Long {
-        val ahora = System.currentTimeMillis()
-        val dosDiaEnMillis = 48 * 60 * 60 * 1000L
-        val unDiaEnMillis = 24 * 60 * 60 * 1000L
-        val doceHorasEnMilis = 12*60 * 60 * 1000L
-        val unaHoraEnMillis = 60 * 60 * 1000L
-        val treintaMinutosEnMillis = 30*60*1000L
-        val diezMinutosEnMilis = 10*60*1000L
-        val cincoMinutosEnMilis = 5*60*1000L
-        val dosMinutoEnMilis = 2*60*1000L
-        val tiempoRestante = dueDateMillis - ahora
-        val nextAlarm = when{
-            tiempoRestante <= dosMinutoEnMilis -> {
-                dueDateMillis
-            }
-            tiempoRestante <= cincoMinutosEnMilis -> {
-                dueDateMillis - dosMinutoEnMilis
-            }
-            tiempoRestante <= diezMinutosEnMilis -> {
-                dueDateMillis - cincoMinutosEnMilis
-            }
-            tiempoRestante <= treintaMinutosEnMillis ->{
-                dueDateMillis - diezMinutosEnMilis
-            }
-            tiempoRestante <= unaHoraEnMillis -> {
-                dueDateMillis - treintaMinutosEnMillis
-            }
-            tiempoRestante <= doceHorasEnMilis -> {
-                dueDateMillis - unaHoraEnMillis
-            }
-            tiempoRestante <= unDiaEnMillis -> {
-                dueDateMillis - doceHorasEnMilis
-            }
-            tiempoRestante <= dosDiaEnMillis -> {
-                dueDateMillis - unDiaEnMillis
-            }
-
-            else -> {
-                ahora + unDiaEnMillis
-            }
-        }
-        Log.d("Entrando", "entro en el agendar${nextAlarm}")
-        return nextAlarm
-    }
     val tasksState: StateFlow<List<Task>> = repository.getAllTasks()
         .stateIn(
             scope = viewModelScope,
@@ -73,6 +29,7 @@ class TaskViewModel(
         description: String,
         day: String,
         dueDateMillis : Long,
+        dueDateEndMillis : Long,
         context: Context
     ){
         viewModelScope.launch{
@@ -80,11 +37,11 @@ class TaskViewModel(
                 title = title,
                 description = description,
                 day = day,
-                dueDateMillis = dueDateMillis
+                dueDateMillis = dueDateMillis,
+                dueDateEndMillis = dueDateEndMillis
             )
             val id = repository.insertTask(newTask).toInt()
-            val nextAlarm = agendarNotificacion(dueDateMillis)
-            Log.d("Entrando", "Ya la mando ${nextAlarm}")
+            val nextAlarm = NotificationManager(dueDateMillis).GetNextStartNotification()
 
             AlarmScheduler.scheduleTaskAlarm(context, id, nextAlarm)
         }
@@ -97,6 +54,7 @@ class TaskViewModel(
         description: String,
         day: String,
         dueDateMillis : Long,
+        dueDateEndMillis : Long,
         context : Context
     ) {
         viewModelScope.launch {
@@ -105,11 +63,11 @@ class TaskViewModel(
                 title = title,
                 description = description,
                 day = day,
-                dueDateMillis = dueDateMillis
+                dueDateMillis = dueDateMillis,
+                dueDateEndMillis = dueDateEndMillis
             )
             repository.update(updatedTask)
-            val nextAlarm = agendarNotificacion(dueDateMillis)
-            Log.d("Entrando", "Ya la mando padrino ${nextAlarm}")
+            val nextAlarm = NotificationManager(dueDateMillis).GetNextStartNotification()
             AlarmScheduler.scheduleTaskAlarm(context, id, nextAlarm)
         }
     }

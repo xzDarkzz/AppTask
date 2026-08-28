@@ -7,12 +7,13 @@ import android.content.Intent
 import android.os.Build
 
 object AlarmScheduler {
-    fun scheduleTaskAlarm(context: Context, taskId: Int, triggerAtMillis: Long) {
+    fun scheduleTaskAlarm(context: Context, taskId: Int, triggerAtMillis: Long, taskStarted: Boolean = false) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
         //Mandamos el ID de la tarea que pronto se va a llamar
         val intent = Intent(context, ScheduleNotification::class.java).apply {
             putExtra("TASK_ID", taskId)
+            putExtra("TASK_STARTED", taskStarted)
         }
 
         val pendingIntent = PendingIntent.getBroadcast(

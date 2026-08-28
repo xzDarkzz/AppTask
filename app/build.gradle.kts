@@ -6,14 +6,14 @@ plugins {
 
 android {
     namespace = "com.example.taskshmanager"
-    compileSdk = 36 // 👈 Lo dejamos en 36 estable y estándar
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.taskshmanager"
         minSdk = 24
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

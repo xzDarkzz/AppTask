@@ -125,17 +125,14 @@ fun SelectDay(modifier: Modifier, daySelected: String, onPreviewsDay : () -> Uni
 fun CardsForTasks(
     modifier: Modifier,
     task: Task,
-    EditTask: (time: TimePickerState,date: LocalDate, task: Task) -> Unit,
+    EditTask: (time: TimePickerState,date: LocalDate, timeEnd: TimePickerState,dateEnd: LocalDate, task: Task) -> Unit,
     DoneTask: (task: Task) -> Unit,
-    dateTime : LocalDateTime
+    dateTime : LocalDateTime,
+    finishDateTime: LocalDateTime
 
 
 ) {
     val accentColor = MaterialTheme.colorScheme.primary
-
-
-
-
     Card(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface,
@@ -240,17 +237,27 @@ fun CardsForTasks(
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     IconButton(onClick = {
-                        val time = TimePickerState(
+                        val timeStart = TimePickerState(
                             initialHour = dateTime.hour.toInt(),
                             initialMinute = dateTime.minute.toInt(),
                             is24Hour = true
                         )
-                        val date = java.time.LocalDate.of(
+                        val dateStart = java.time.LocalDate.of(
                             dateTime.year.toInt(),            // Año de la tarea actual
                             dateTime.month,           // Mes de la tarea actual
                             dateTime.dayOfMonth  // Día de la tarea actual
                         )
-                        EditTask(time,date, task)
+                        val timeEnd = TimePickerState(
+                            initialHour = finishDateTime.hour.toInt(),
+                            initialMinute = finishDateTime.minute.toInt(),
+                            is24Hour = true
+                        )
+                        val dateEnd = java.time.LocalDate.of(
+                            finishDateTime.year.toInt(),            // Año de la tarea actual
+                            finishDateTime.month,           // Mes de la tarea actual
+                            finishDateTime.dayOfMonth  // Día de la tarea actual
+                        )
+                        EditTask(timeStart,dateStart, timeEnd,dateEnd,task)
                     }, Modifier.size(28.dp)) {
                         Icon(
                             Icons.Default.Edit,
@@ -286,7 +293,7 @@ fun HourSelector(
     onDismissRequest : () -> Unit,
     dismissButton : () -> Unit,
     timeManager: TimeManager,
-    composableTimeManager: ComposableTimeManager
+    composableTimeManager: ComposableTimeManager,
 ){
     val state = rememberTimePickerState()
     fun confirmButton(){
@@ -358,8 +365,10 @@ fun DateSelector(
 @Composable
 fun TimeSelector(
     modifier: Modifier,
-    OpenTimeSelector: (option: Int) -> Unit,
-    timeManager: TimeManager
+    OpenTimeSelector: (option: Int, optionTimeDate:Int) -> Unit,
+    timeManager: TimeManager,
+    timeManagerFinish: TimeManager,
+    optionTime:Int = 0
 ){
 
     Row(modifier = Modifier
@@ -375,14 +384,23 @@ fun TimeSelector(
                 contentDescription = "CalendarIcon",
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            TextButton(onClick = {OpenTimeSelector(2)}, modifier = Modifier) {
+            TextButton(onClick = {OpenTimeSelector(2, optionTime)}, modifier = Modifier) {
                 Text(
-                    "${String.format("%02d", timeManager.dayOfMonth)}/${
-                        String.format(
-                            "%02d",
-                            timeManager.month
-                        )
-                    }",
+                    if(optionTime == 1){
+                        "${String.format("%02d", timeManagerFinish.dayOfMonth)}/${
+                            String.format(
+                                "%02d",
+                                timeManagerFinish.month
+                            )
+                        }"
+                    } else {
+                        "${String.format("%02d", timeManager.dayOfMonth)}/${
+                            String.format(
+                                "%02d",
+                                timeManager.month
+                            )
+                        }"
+                    },
                     fontSize = 35.sp
                 )
             }
@@ -398,14 +416,22 @@ fun TimeSelector(
                 contentDescription = "AlarmIcon",
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            TextButton(onClick = {OpenTimeSelector(1)}) {
-                Text(
+            TextButton(onClick = {OpenTimeSelector(1, optionTime)}) {
+                Text(if (optionTime == 1){
+                    "${String.format("%02d", timeManagerFinish.hour)}:${
+                        String.format(
+                            "%02d",
+                            timeManagerFinish.minute
+                        )
+                    }"
+                } else{
                     "${String.format("%02d", timeManager.hour)}:${
                         String.format(
                             "%02d",
                             timeManager.minute
                         )
-                    }",
+                    }"
+                },
                     fontSize = 35.sp
                 )
             }
@@ -424,10 +450,11 @@ fun BottomSheetTasks(
     modifier: Modifier,
     sheetState: SheetState,
     DismissRequest: () -> Unit,
-    OpenTimeSelector: (option: Int) -> Unit,
+    OpenTimeSelector: (option: Int, optionTime : Int) -> Unit,
     timeManager: TimeManager,
     DoneRequest : () -> Unit,
-    taskManager: TaskManagerInformation
+    taskManager: TaskManagerInformation,
+    timeManagerFinish: TimeManager
 ){
     //Variables
 
@@ -442,7 +469,7 @@ fun BottomSheetTasks(
         onDismissRequest = { DismissRequest() }
     ) {
         Box(modifier= Modifier
-            .height(380.dp)
+            .height(450.dp)
             .fillMaxWidth()
             .padding(15.dp)){
             Column(modifier = Modifier) {
@@ -466,14 +493,34 @@ fun BottomSheetTasks(
                         inputTransformation = InputTransformation.maxLength(100)
                     )
 
-                    TimeSelector(
-                        modifier = Modifier,
-                        OpenTimeSelector = {
-                                option -> var option = option
-                            OpenTimeSelector(option)
-                        },
-                        timeManager = timeManager
-                    )
+                    Column() {
+                        Text("Start")
+                        //Time selector for the start time
+                        TimeSelector(
+                            modifier = Modifier,
+                            OpenTimeSelector = {
+                                    option, optionTime ->
+                                OpenTimeSelector(option, optionTime)
+                            },
+                            timeManager = timeManager,
+                            timeManagerFinish
+
+                        )
+                        //Time selector for the end time
+                        Text("End")
+                        TimeSelector(
+                            modifier = Modifier,
+                            OpenTimeSelector = {
+                                    option, optionTime ->
+                                OpenTimeSelector(option, optionTime)
+
+                            },
+                            timeManager = timeManager,
+                            timeManagerFinish,
+                            optionTime = 1
+                        )
+                    }
+
 
                 }
                 Row(
@@ -515,7 +562,8 @@ fun Tasks(
     modifier: Modifier = Modifier,
     days: List<String>,
     viewModel: ComposableTimeManager = viewModel(),
-    timeManager: TimeManager = viewModel(),
+    timeManager: TimeManager = remember { TimeManager() },
+    timeManagerFinish: TimeManager = remember { TimeManager() },
     viewModelTask: TaskViewModel? = null,
     taskManager : TaskManagerInformation = viewModel(),
     permissionStatus : Boolean,
@@ -532,6 +580,7 @@ fun Tasks(
     var showBottomSheet by remember { mutableStateOf(false) }
     var editOption by remember { mutableStateOf(false) }
     var optionDatePicker by remember { mutableIntStateOf(0)}
+    var optionTimeTask by remember { mutableIntStateOf(0)}
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true,
     )
@@ -580,6 +629,7 @@ fun Tasks(
     fun DoneTasks(){
         var id: Long?
         val dateMillis: Long = timeManager.getSelectedTimeInMillis()
+        val endDateMillis : Long = timeManagerFinish.getSelectedTimeInMillis()
         Log.d("miliiss", "${dateMillis}")
         //Mandar a la base de datos
         if(editOption){
@@ -589,7 +639,8 @@ fun Tasks(
                 description = taskManager.description,
                 day = timeManager.dayOfWeek.toString(),
                 dueDateMillis = dateMillis,
-                context = context
+                dueDateEndMillis = endDateMillis,
+                context
             )
             Log.d("editTask","" +
                     "el titulo: ${taskManager.title}, " +
@@ -603,6 +654,7 @@ fun Tasks(
                 description = taskManager.description,
                 day = timeManager.dayOfWeek.toString(),
                 dueDateMillis = dateMillis,
+                dueDateEndMillis = endDateMillis,
                 context
             )
         }
@@ -614,10 +666,12 @@ fun Tasks(
         showBottomSheet = false
     }
 
-    fun EditTask(time: TimePickerState,date: LocalDate, task: Task){
+    fun EditTask(timeStart: TimePickerState,dateStart: LocalDate,timeEnd: TimePickerState, dateEnd: LocalDate,task: Task){
         taskManager.UpdateInfo(task.title,task.description,task.id)
-        timeManager.ChangeHour(time)
-        timeManager.ChangeDate(date)
+        timeManager.ChangeHour(timeStart)
+        timeManager.ChangeDate(dateStart)
+        timeManagerFinish.ChangeHour(timeEnd)
+        timeManagerFinish.ChangeDate(dateEnd)
         showBottomSheet = true
         editOption = true
     }
@@ -626,20 +680,20 @@ fun Tasks(
     }
 
     @Composable
-    fun SelectDisplayOption(option: Int){
+    fun SelectDisplayOption(option: Int, optionTime: Int){
         SendPermissionNotification()
         when(option){
             1 -> HourSelector(
                 modifier = Modifier,
                 onDismissRequest = { viewModel.closeBottomSheet() },
                 dismissButton = { viewModel.closeBottomSheet() },
-                timeManager = timeManager,
+                timeManager = if(optionTime == 1) timeManagerFinish else timeManager,
                 composableTimeManager = viewModel
             )
             2 -> DateSelector(
                 onDismissRequest = { viewModel.closeBottomSheet() },
                 dismissButton = { viewModel.closeBottomSheet() },
-                timeManager = timeManager,
+                timeManager = if(optionTime == 1) timeManagerFinish else timeManager,
                 composableTimeManager = viewModel
             )
         }
@@ -648,26 +702,26 @@ fun Tasks(
         Box(modifier = Modifier){
             Column(modifier = Modifier) {
                 SelectDay(modifier = Modifier, daySelected, onPreviewsDay = {SelectDayTask(2)}, onAfterDay = {SelectDayTask(1)})
-                Box(modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = 15.dp)){
-                    LazyColumn(verticalArrangement = Arrangement.spacedBy(25.dp),) {
-                        items(items = localTasks, key = {task -> task.id}) { task ->
-
-                            val dateTime = timeManager.setTimeFromMillis(task.dueDateMillis)
-
-                            CardsForTasks(
-                                modifier = Modifier,
-                                task = task,
-                                EditTask = {time, date, task->
-                                    EditTask(time,date, task)
-                                },
-                                DoneTask = {task ->
-                                    DoneTask(task)
-                                },
-                                dateTime
-                            )
-                        }
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize().padding(top = 15.dp),
+                    verticalArrangement = Arrangement.spacedBy(25.dp),
+                    contentPadding = PaddingValues(bottom = 88.dp)
+                ) {
+                    items(items = localTasks, key = {task -> task.id}) { task ->
+                        val dateTime = timeManager.setTimeFromMillis(task.dueDateMillis)
+                        val finishDateTime = timeManagerFinish.setTimeFromMillis(task.dueDateEndMillis)
+                        CardsForTasks(
+                            modifier = Modifier,
+                            task = task,
+                            EditTask = {timeStart, dateStart, timeEnd, dateEnd, task->
+                                EditTask(timeStart,dateStart,timeEnd,dateEnd, task)
+                            },
+                            DoneTask = {task ->
+                                DoneTask(task)
+                            },
+                            dateTime,
+                            finishDateTime
+                        )
                     }
                 }
             }
@@ -678,6 +732,7 @@ fun Tasks(
                     editOption = false
                     showBottomSheet = true
                     timeManager.ReturnActualTime()
+                    timeManagerFinish.ReturnActualTime()
                     taskManager.EmptyInfo()
 
                 },
@@ -693,24 +748,26 @@ fun Tasks(
                 sheetState = sheetState,
                 DismissRequest = { changeStateButtomSheet() },
                 OpenTimeSelector = {
-                        option -> var options = option
-                    optionDatePicker = options
+                        option, optionTime ->
+                    optionDatePicker = option
+                    optionTimeTask = optionTime
                     viewModel.openBottomSheet()
-                    Log.d("DATE","${option} hola")
                 },
                 timeManager = timeManager,
                 DoneRequest = {
                     DoneTasks()
                 },
-                taskManager
+                taskManager,
+                timeManagerFinish
             )
             if(viewModel.showAlert){
-                SelectDisplayOption(optionDatePicker)
+                SelectDisplayOption(optionDatePicker, optionTimeTask)
             }
 
         }
 
     }
 }
+
 
 

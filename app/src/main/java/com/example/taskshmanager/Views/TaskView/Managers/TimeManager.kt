@@ -16,51 +16,44 @@ import java.time.ZoneId
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
-open class TimeManager : ViewModel(){
+class TimeManager(
+    initialDateTime: LocalDateTime = LocalDateTime.now()
+) {
+    private var currentTime = initialDateTime
 
-    private var currentTime = LocalDateTime.now()
-
-    val currentDayIndex: Int
-    init {
-        currentDayIndex = when(currentTime.dayOfWeek){
-            DayOfWeek.MONDAY -> 0
-            DayOfWeek.TUESDAY -> 1
-            DayOfWeek.WEDNESDAY -> 2
-            DayOfWeek.THURSDAY -> 3
-            DayOfWeek.FRIDAY -> 4
-            DayOfWeek.SATURDAY -> 5
-            DayOfWeek.SUNDAY -> 6
-        }
+    val currentDayIndex: Int = when (currentTime.dayOfWeek) {
+        DayOfWeek.MONDAY -> 0
+        DayOfWeek.TUESDAY -> 1
+        DayOfWeek.WEDNESDAY -> 2
+        DayOfWeek.THURSDAY -> 3
+        DayOfWeek.FRIDAY -> 4
+        DayOfWeek.SATURDAY -> 5
+        DayOfWeek.SUNDAY -> 6
     }
 
     var year by mutableStateOf(currentTime.year)
-
-
-    //Calendar
     var month by mutableStateOf(currentTime.monthValue)
     var dayOfMonth by mutableStateOf(currentTime.dayOfMonth)
     var dayOfWeek by mutableStateOf(currentTime.dayOfWeek)
-    //Clock
+
     var hour by mutableStateOf(currentTime.hour)
     var minute by mutableStateOf(currentTime.minute)
 
-
-
-
-    fun ChangeHour(newHour: TimePickerState){
+    fun ChangeHour(newHour: TimePickerState) {
         hour = newHour.hour
         minute = newHour.minute
-
     }
-    fun ChangeDate(newDate: LocalDate){
+
+    fun ChangeDate(newDate: LocalDate) {
         year = newDate.year
         month = newDate.monthValue
         dayOfMonth = newDate.dayOfMonth
         dayOfWeek = newDate.dayOfWeek
-
     }
-    fun ReturnActualTime(){
+
+    fun ReturnActualTime() {
         currentTime = LocalDateTime.now()
+        year = currentTime.year
         month = currentTime.monthValue
         dayOfWeek = currentTime.dayOfWeek
         dayOfMonth = currentTime.dayOfMonth
@@ -68,16 +61,14 @@ open class TimeManager : ViewModel(){
         minute = currentTime.minute
     }
 
-    fun CheckIndex(): Int {
-        return dayOfWeek.value - 1
-    }
-    //Crea la seleccion en un localDateTime
+    fun CheckIndex(): Int = dayOfWeek.value - 1
+
     fun getSelectedLocalDateTime(): LocalDateTime {
         return LocalDateTime.of(year, month, dayOfMonth, hour, minute)
     }
+
     fun getSelectedTimeInMillis(): Long {
-        val selectedDateTime = getSelectedLocalDateTime()
-        return selectedDateTime
+        return getSelectedLocalDateTime()
             .atZone(ZoneId.systemDefault())
             .toInstant()
             .toEpochMilli()
@@ -90,7 +81,6 @@ open class TimeManager : ViewModel(){
         return dateTime
 
     }
-
 }
 
 

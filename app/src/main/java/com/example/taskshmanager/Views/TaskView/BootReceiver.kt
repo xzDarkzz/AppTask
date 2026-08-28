@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import com.example.taskshmanager.Views.TaskView.Managers.NotificationManager
 import com.example.taskshmanager.data.AppDataBase
 import com.example.taskshmanager.data.TaskRepository
 import kotlinx.coroutines.CoroutineScope
@@ -33,53 +34,20 @@ class BootReceiver : BroadcastReceiver() {
 
                     val ahora = System.currentTimeMillis()
                     entities.forEach { taskEntity ->
-                        // Si la tarea aún no ha vencido, reprogramamos su alarma
+                        // SI LA TAREA AUN NO SE AH EMPEZADO
                         if (taskEntity.dueDateMillis > ahora) {
 
-                            val dueDateMillis = taskEntity.dueDateMillis
-                            val dosDiaEnMillis = 48 * 60 * 60 * 1000L
-                            val unDiaEnMillis = 24 * 60 * 60 * 1000L
-                            val doceHorasEnMilis = 12 * 60 * 60 * 1000L
-                            val unaHoraEnMillis = 60 * 60 * 1000L
-                            val treintaMinutosEnMillis = 30 * 60 * 1000L
-                            val diezMinutosEnMilis = 10 * 60 * 1000L
-                            val cincoMinutosEnMilis = 5 * 60 * 1000L
-                            val dosMinutosEnMilis = 2 * 60 * 1000L
-                            val tiempoRestante = dueDateMillis - ahora
-
-                            val nextAlarm = when {
-                                tiempoRestante <= dosMinutosEnMilis -> {
-                                    dueDateMillis
-                                }
-                                tiempoRestante <= cincoMinutosEnMilis -> {
-                                    dueDateMillis - dosMinutosEnMilis
-                                }
-                                tiempoRestante <= diezMinutosEnMilis -> {
-                                    dueDateMillis - cincoMinutosEnMilis
-                                }
-                                tiempoRestante <= treintaMinutosEnMillis -> {
-                                    dueDateMillis - diezMinutosEnMilis
-                                }
-                                tiempoRestante <= unaHoraEnMillis -> {
-                                    dueDateMillis - treintaMinutosEnMillis
-                                }
-                                tiempoRestante <= doceHorasEnMilis -> {
-                                    dueDateMillis - unaHoraEnMillis
-                                }
-                                tiempoRestante <= unDiaEnMillis -> {
-                                    dueDateMillis - doceHorasEnMilis
-                                }
-                                tiempoRestante <= dosDiaEnMillis -> {
-                                    dueDateMillis - unDiaEnMillis
-                                }
-                                else -> {
-                                    ahora + unDiaEnMillis
-                                }
-                            }
-                            Log.d("Entrando", "entro ${nextAlarm}")
+                            val nextAlarm = NotificationManager(taskEntity.dueDateMillis).GetNextStartNotification()
 
                             // Re-agendamos en el AlarmManager
                             AlarmScheduler.scheduleTaskAlarm(context, taskEntity.id, nextAlarm)
+                        }
+                        //REASIGNACION SI LA TAREA YA SE EMPEZO
+                        else{
+                            val nextAlarm = NotificationManager(taskEntity.dueDateMillis).GetNextFinishNotification()
+
+                            // Re-agendamos en el AlarmManager
+                            AlarmScheduler.scheduleTaskAlarm(context, taskEntity.id, nextAlarm, true)
                         }
                     }
                 } catch (e: Exception) {
