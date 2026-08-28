@@ -204,7 +204,7 @@ fun CardsForTasks(
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(
-                                text = "${String.format("%02d", dateTime.dayOfMonth)}/${String.format("%02d",dateTime.month.value)}/${dateTime.year}",
+                                text = "${String.format("%02d", finishDateTime.dayOfMonth)}/${String.format("%02d",finishDateTime.month.value)}/${finishDateTime.year}",
                                 fontSize = 12.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -222,7 +222,12 @@ fun CardsForTasks(
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(
-                                text = "${String.format("%02d", dateTime.hour)}:${String.format("%02d",dateTime.minute)}",
+                                text = "${
+                                    String.format(
+                                        "%02d",
+                                        dateTime.hour
+                                    )
+                                }:${String.format("%02d", dateTime.minute)} - ${String.format("%02d", finishDateTime.hour)}:${String.format("%02d",finishDateTime.minute)}",
                                 fontSize = 12.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -637,7 +642,7 @@ fun Tasks(
                 id = taskManager.id,
                 title = taskManager.title,
                 description = taskManager.description,
-                day = timeManager.dayOfWeek.toString(),
+                day = timeManagerFinish.dayOfWeek.toString(),
                 dueDateMillis = dateMillis,
                 dueDateEndMillis = endDateMillis,
                 context
@@ -652,7 +657,7 @@ fun Tasks(
             viewModelTask?.addTask(
                 title = taskManager.title,
                 description = taskManager.description,
-                day = timeManager.dayOfWeek.toString(),
+                day = timeManagerFinish.dayOfWeek.toString(),
                 dueDateMillis = dateMillis,
                 dueDateEndMillis = endDateMillis,
                 context

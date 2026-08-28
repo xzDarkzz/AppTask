@@ -21,7 +21,7 @@ interface TaskDao {
     suspend fun delete(task : TaskEntity)
 
     //Seleccionar todas las tareas
-    @Query("SELECT * FROM task_table ORDER BY id DESC")
+    @Query("SELECT * FROM task_table ORDER BY dueDateEndMillis DESC")
     fun getAllTask(): Flow<List<TaskEntity>>
 
     @Query("SELECT * FROM task_table ORDER BY id DESC")

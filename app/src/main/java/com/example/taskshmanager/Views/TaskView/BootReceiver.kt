@@ -44,7 +44,7 @@ class BootReceiver : BroadcastReceiver() {
                         }
                         //REASIGNACION SI LA TAREA YA SE EMPEZO
                         else{
-                            val nextAlarm = NotificationManager(taskEntity.dueDateMillis).GetNextFinishNotification()
+                            val nextAlarm = NotificationManager(taskEntity.dueDateEndMillis).GetNextFinishNotification()
 
                             // Re-agendamos en el AlarmManager
                             AlarmScheduler.scheduleTaskAlarm(context, taskEntity.id, nextAlarm, true)

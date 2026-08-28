@@ -35,10 +35,10 @@ class ScheduleNotification : BroadcastReceiver() {
 
 
             val ahora = LocalDateTime.now()
-            val fechaDeInicio = Instant.ofEpochMilli(task.dueDateEndMillis)
+            val fechaDeInicio = Instant.ofEpochMilli(task.dueDateMillis)
                 .atZone(ZoneId.systemDefault())
                 .toLocalDateTime()
-            val fechaEntrega = Instant.ofEpochMilli(task.dueDateMillis)
+            val fechaEntrega = Instant.ofEpochMilli(task.dueDateEndMillis)
                 .atZone(ZoneId.systemDefault())
                 .toLocalDateTime()
 
@@ -55,7 +55,7 @@ class ScheduleNotification : BroadcastReceiver() {
 
             // 1. Construcción del mensaje según el tiempo restante
             val (titulo, mensaje) =
-                if(taskStarted){
+                if(!taskStarted){
                     when {
                         minutosRestantes <= 0 -> {
                             Pair("ES HORA INICA", "La tarea '${task.title}' la tienes que empezar ya.")
@@ -64,7 +64,7 @@ class ScheduleNotification : BroadcastReceiver() {
                             Pair("Estas a nada de iniciar", "${task.title.uppercase()} Esta apunto de iniciar, tienes:  5 minutos restantes")
                         }
                         minutosRestantes <= 10 -> {
-                            Pair("¿Ya estas listo?", "La tarea : ${task.title} terminara en: 10 minutos(m)")
+                            Pair("¿Ya estas listo?", "La tarea : ${task.title} empezara en: 10 minutos(m)")
                         }
                         minutosRestantes <= 30 -> {
                             Pair("Preparate", "La tarea : ${task.title} iniciara en: 30 minutos(m)")
@@ -121,10 +121,10 @@ class ScheduleNotification : BroadcastReceiver() {
             //PARA FINALIZAR LA TAREA
             else if(ahoraMillis < task.dueDateEndMillis){
                 val proximoLevantamientoMillis =
-                    com.example.taskshmanager.Views.TaskView.Managers.NotificationManager(task.dueDateMillis).GetNextFinishNotification()
+                    com.example.taskshmanager.Views.TaskView.Managers.NotificationManager(task.dueDateEndMillis).GetNextFinishNotification()
 
                 // Ajustamos para no pasarnos del tiempo límite de la tarea
-                val finalTrigger = proximoLevantamientoMillis.coerceAtMost(task.dueDateMillis)
+                val finalTrigger = proximoLevantamientoMillis.coerceAtMost(task.dueDateEndMillis)
 
                 AlarmScheduler.scheduleTaskAlarm(context, task.id, finalTrigger, true)
             }
