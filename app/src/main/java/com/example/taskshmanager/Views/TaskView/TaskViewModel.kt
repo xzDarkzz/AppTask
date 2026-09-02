@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.taskshmanager.Views.TaskView.AlarmScheduler
+import com.example.taskshmanager.Views.TaskView.alarmFiles.AlarmScheduler
 import com.example.taskshmanager.Views.TaskView.Managers.NotificationManager
 import com.example.taskshmanager.data.Domain.Task
 import com.example.taskshmanager.data.TaskRepository

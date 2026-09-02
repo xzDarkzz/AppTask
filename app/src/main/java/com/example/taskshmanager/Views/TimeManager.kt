@@ -1,4 +1,4 @@
-package com.example.taskshmanager.Views.TaskView.Managers
+package com.example.taskshmanager.Views
 
 import android.os.Build
 import androidx.annotation.RequiresApi

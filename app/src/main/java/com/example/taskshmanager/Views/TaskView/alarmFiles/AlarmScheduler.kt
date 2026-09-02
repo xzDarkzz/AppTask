@@ -1,16 +1,17 @@
-package com.example.taskshmanager.Views.TaskView
+package com.example.taskshmanager.Views.TaskView.alarmFiles
 
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import com.example.taskshmanager.MainActivity
 
 object AlarmScheduler {
     fun scheduleTaskAlarm(context: Context, taskId: Int, triggerAtMillis: Long, taskStarted: Boolean = false) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-        //Mandamos el ID de la tarea que pronto se va a llamar
+        // Intent hacia el BroadcastReceiver
         val intent = Intent(context, ScheduleNotification::class.java).apply {
             putExtra("TASK_ID", taskId)
             putExtra("TASK_STARTED", taskStarted)
@@ -18,18 +19,24 @@ object AlarmScheduler {
 
         val pendingIntent = PendingIntent.getBroadcast(
             context,
-            taskId, // El ID de la tarea hace único al PendingIntent
+            taskId,
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        // Seteamos la alarma exacta
+        // Intent visual opcional (lo que se abre si el usuario toca la alarma en la barra de estado)
+        val showIntent = Intent(context, MainActivity::class.java)
+        val showPendingIntent = PendingIntent.getActivity(
+            context,
+            taskId,
+            showIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        // Seteamos la alarma con prioridad máxima de Despertador (Anti-Doze)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            alarmManager.setExactAndAllowWhileIdle(
-                AlarmManager.RTC_WAKEUP,
-                triggerAtMillis,
-                pendingIntent
-            )
+            val alarmClockInfo = AlarmManager.AlarmClockInfo(triggerAtMillis, showPendingIntent)
+            alarmManager.setAlarmClock(alarmClockInfo, pendingIntent)
         } else {
             alarmManager.setExact(
                 AlarmManager.RTC_WAKEUP,

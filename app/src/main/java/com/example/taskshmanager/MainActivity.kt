@@ -46,7 +46,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
-import com.example.taskshmanager.Views.TaskView.Tasks
+import com.example.taskshmanager.Views.Schedule.ScheduleViewUI
 import com.example.taskshmanager.data.AppDataBase
 import com.example.taskshmanager.data.TaskRepository
 import com.example.taskshmanager.ui.TaskViewModel
@@ -147,6 +147,7 @@ fun App(modifier: Modifier = Modifier,
                 NavigationBarItem(
                     selected = true,
                     onClick = {
+
                     },
                     icon = {
                         Icon(
@@ -180,15 +181,21 @@ fun App(modifier: Modifier = Modifier,
             }
         },
     ) { innerPadding ->
-        Tasks(
+//        Tasks(
+//            modifier = Modifier
+//                .padding(innerPadding)
+//                .padding(10.dp),
+//            days = DaysOfTheWeek,
+//            viewModelTask = viewModelTask,
+//            permissionStatus = permissionStatus,
+//            SendPermissionNotification = { RequestPermissionNotificactions() },
+//            context = context
+//        )
+        ScheduleViewUI(
             modifier = Modifier
                 .padding(innerPadding)
                 .padding(10.dp),
-            days = DaysOfTheWeek,
-            viewModelTask = viewModelTask,
-            permissionStatus = permissionStatus,
-            SendPermissionNotification = { RequestPermissionNotificactions() },
-            context = context
+            days = DaysOfTheWeek
         )
     }
 }

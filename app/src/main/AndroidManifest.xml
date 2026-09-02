@@ -17,11 +17,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.TaskShManager">
         <receiver
-            android:name='.Views.TaskView.ScheduleNotification'
+            android:name='.Views.TaskView.alarmFiles.ScheduleNotification'
             android:enabled="true"
             android:exported="false" />
         <receiver
-            android:name=".Views.TaskView.BootReceiver"
+            android:name=".Views.TaskView.alarmFiles.BootReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter>

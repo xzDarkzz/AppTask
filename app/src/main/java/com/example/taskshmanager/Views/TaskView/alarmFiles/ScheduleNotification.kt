@@ -1,5 +1,6 @@
-package com.example.taskshmanager.Views.TaskView
+package com.example.taskshmanager.Views.TaskView.alarmFiles
 
+import android.R
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.BroadcastReceiver
@@ -144,7 +145,7 @@ class ScheduleNotification : BroadcastReceiver() {
         }
 
         val notification = NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(android.R.drawable.ic_popup_reminder) // Cambiar por el ícono de tu app
+            .setSmallIcon(R.drawable.ic_popup_reminder) // Cambiar por el ícono de tu app
             .setContentTitle(titulo)
             .setContentText(mensaje)
             .setPriority(NotificationCompat.PRIORITY_MAX)
