@@ -1,5 +1,6 @@
 package com.example.taskshmanager.Views.Schedule
 
+import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.InputTransformation
 import androidx.compose.foundation.text.input.TextFieldLineLimits
@@ -37,102 +39,84 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TimePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.taskshmanager.Views.ComposableTimeManager
-import com.example.taskshmanager.Views.TaskView.Managers.TaskManagerInformation
 import com.example.taskshmanager.Views.TimeManager
 import com.example.taskshmanager.Views.composables.DateSelector
 import com.example.taskshmanager.Views.composables.HourSelector
 import com.example.taskshmanager.Views.composables.SelectDay
 import com.example.taskshmanager.Views.composables.TimeSelector
+import com.example.taskshmanager.data.Domain.Schedule
+import java.time.LocalDate
 
-// Nota: Deberás importar tu Schedule (Dominio) y ScheduleViewModel cuando los creemos en el siguiente paso.
-// import com.example.taskshmanager.data.Domain.Schedule
-
-// 1. Tarjeta con el mismo diseño visual de CardsForTasks
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun CardForSchedule(
     modifier: Modifier = Modifier,
-    title: String,
+    title: String,r
     description: String,
     startTime: String,
     endTime: String,
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit
 ) {
-    val accentColor = MaterialTheme.colorScheme.tertiary // Usamos un color distinto para diferenciar de Tareas
+    val accentColor = MaterialTheme.colorScheme.tertiary
 
     Card(
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
-        ),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        modifier = modifier
-            .fillMaxWidth()
-            .height(115.dp)
+        modifier = modifier.fillMaxWidth().height(115.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .clip(RoundedCornerShape(12.dp))
-        ) {
-            // Barra lateral de acento
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .width(8.dp)
-                    .background(accentColor)
-            )
-
+        Row(modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(12.dp))) {
+            Box(modifier = Modifier
+                .fillMaxHeight()
+                .width(8.dp)
+                .background(accentColor))
             Row(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(start = 12.dp, top = 12.dp, end = 12.dp, bottom = 10.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .weight(1f),
+                Column(modifier = Modifier
+                    .fillMaxHeight()
+                    .weight(1f),
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = title, // Materia
+                        text = title,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-
                     Text(
-                        text = description, // Aula o Profesor
+                        text = description,
                         fontSize = 14.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-
-                    Row(
-                        modifier = Modifier,
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        // Hora de inicio y fin de la clase
+                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -151,19 +135,20 @@ fun CardForSchedule(
                         }
                     }
                 }
-
-                // Botones de acción: Editar y Eliminar
                 Column(
                     modifier = Modifier.fillMaxHeight(),
                     verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
-                    horizontalAlignment = Alignment.CenterHorizontally,
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    IconButton(onClick = onEditClick, Modifier.size(28.dp)) {
+                    IconButton(
+                        onClick = onEditClick,
+                        Modifier.size(28.dp)
+                    ) {
                         Icon(
                             Icons.Default.Edit,
-                            contentDescription = "Edit class",
-                            modifier = Modifier.fillMaxSize(),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            "Edit class",
+                            Modifier.fillMaxSize(),
+                            MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     IconButton(onClick = onDeleteClick, Modifier.size(28.dp)) {
@@ -180,7 +165,6 @@ fun CardForSchedule(
     }
 }
 
-// 2. BottomSheet exactamente igual al de Tareas para reciclar la lógica de entradas
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -191,11 +175,11 @@ fun BottomSheetSchedule(
     OpenTimeSelector: (option: Int, optionTime: Int) -> Unit,
     timeManagerStart: TimeManager,
     timeManagerFinish: TimeManager,
-    taskManager: TaskManagerInformation, // Reutilizamos tu manager temporalmente para los textfields
+    scheduleManager: scheduleManager,
     DoneRequest: () -> Unit
 ) {
-    val titleState = rememberTextFieldState(initialText = taskManager.title)
-    val descriptionState = rememberTextFieldState(initialText = taskManager.description)
+    val titleState = rememberTextFieldState(initialText = scheduleManager.title)
+    val descriptionState = rememberTextFieldState(initialText = scheduleManager.description)
 
     ModalBottomSheet(
         sheetState = sheetState,
@@ -204,9 +188,8 @@ fun BottomSheetSchedule(
         Box(modifier = Modifier
             .height(450.dp)
             .fillMaxWidth()
-            .padding(15.dp)
-        ) {
-            Column(modifier = Modifier) {
+            .padding(15.dp)) {
+            Column {
                 Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
                     OutlinedTextField(
                         modifier = Modifier.fillMaxWidth(),
@@ -222,23 +205,28 @@ fun BottomSheetSchedule(
                         lineLimits = TextFieldLineLimits.SingleLine,
                         inputTransformation = InputTransformation.maxLength(50)
                     )
-
                     Column {
-                        Text("Hora de Inicio")
+                        Text("Start")
                         TimeSelector(
                             modifier = Modifier,
                             OpenTimeSelector = { option, optionTime ->
-                                OpenTimeSelector(option, optionTime)
+                                OpenTimeSelector(
+                                    option,
+                                    optionTime
+                                )
                             },
                             timeManager = timeManagerStart,
                             timeManagerFinish = timeManagerFinish,
                             optionTime = 0
                         )
-                        Text("Hora de Fin")
+                        Text("End")
                         TimeSelector(
                             modifier = Modifier,
                             OpenTimeSelector = { option, optionTime ->
-                                OpenTimeSelector(option, optionTime)
+                                OpenTimeSelector(
+                                    option,
+                                    optionTime
+                                )
                             },
                             timeManager = timeManagerStart,
                             timeManagerFinish = timeManagerFinish,
@@ -249,15 +237,14 @@ fun BottomSheetSchedule(
                 Row(
                     modifier = Modifier.fillMaxSize(),
                     verticalAlignment = Alignment.Bottom,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp, alignment = Alignment.End),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp, alignment = Alignment.End)
                 ) {
-                    Button(onClick = { DismissRequest() }) {
-                        Text("Cancelar")
-                    }
+                    Button(onClick = { DismissRequest() }) { Text("Cancelar") }
                     Button(onClick = {
-                        taskManager.UpdateInfo(titleState.text.toString(), descriptionState.text.toString(), taskManager.id)
+                        scheduleManager.UpdateInfo(titleState.text.toString(), descriptionState.text.toString(), scheduleManager.id)
                         DoneRequest()
-                    }) {
+                    }
+                    ) {
                         Text("Guardar")
                     }
                 }
@@ -266,10 +253,6 @@ fun BottomSheetSchedule(
     }
 }
 
-
-
-
-// 3. Vista principal conectando el DaySelector y el LazyColumn
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -278,8 +261,10 @@ fun ScheduleViewUI(
     days: List<String>,
     timeManagerStart: TimeManager = remember { TimeManager() },
     timeManagerFinish: TimeManager = remember { TimeManager() },
-    taskManager: TaskManagerInformation = viewModel(),
-    viewModel: ComposableTimeManager = viewModel()
+    scheduleManager: scheduleManager = viewModel(),
+    viewModel: ComposableTimeManager = viewModel(),
+    scheduleViewModel: ScheduleViewModel? = null,
+    context: Context = LocalContext.current
 ) {
     var showBottomSheet by remember { mutableStateOf(false) }
     var editOption by remember { mutableStateOf(false) }
@@ -290,6 +275,18 @@ fun ScheduleViewUI(
     var indexSelection by remember { mutableIntStateOf(timeManagerStart.currentDayIndex) }
     var daySelected = days[indexSelection]
 
+    val schedulesState = scheduleViewModel?.scheduleState?.collectAsState(initial = emptyList())
+    val schedules = schedulesState?.value
+    val localSchedules = remember { mutableStateListOf<Schedule>() }
+
+    if (schedules?.isNotEmpty() == true) {
+        localSchedules.clear()
+        val newList = schedules.filter { it.day.lowercase() == daySelected.lowercase() }
+        localSchedules.addAll(newList)
+    } else {
+        localSchedules.clear()
+    }
+
     fun SelectDayTask(option: Int) {
         when (option) {
             1 -> if (indexSelection < days.size - 1) indexSelection++ else indexSelection = 0
@@ -297,76 +294,103 @@ fun ScheduleViewUI(
         }
         daySelected = days[indexSelection]
     }
+
+    fun DoneSchedules() {
+        val startMillis: Long = timeManagerStart.getSelectedTimeInMillis()
+        val endMillis: Long = timeManagerFinish.getSelectedTimeInMillis()
+        val dayOfWeekStr = timeManagerStart.dayOfWeek.toString()
+
+        if (editOption) {
+            scheduleViewModel?.editSchedule(
+                scheduleManager.id,
+                scheduleManager.title,
+                scheduleManager.description,
+                dayOfWeekStr,
+                startMillis,
+                endMillis,
+                context
+            )
+            editOption = false
+        } else {
+            scheduleViewModel?.addSchedule(
+                scheduleManager.title,
+                scheduleManager.description,
+                dayOfWeekStr,
+                startMillis,
+                endMillis,
+                context
+            )
+        }
+
+        indexSelection = timeManagerStart.CheckIndex()
+        showBottomSheet = false
+    }
+
+    fun EditSchedule(timeStart: TimePickerState, dateStart: LocalDate, timeEnd: TimePickerState, dateEnd: LocalDate, schedule: Schedule) {
+        scheduleManager.UpdateInfo(schedule.subject, schedule.description, schedule.id)
+        timeManagerStart.ChangeHour(timeStart)
+        timeManagerStart.ChangeDate(dateStart)
+        timeManagerFinish.ChangeHour(timeEnd)
+        timeManagerFinish.ChangeDate(dateEnd)
+        showBottomSheet = true
+        editOption = true
+    }
+
     @Composable
-    fun SelectDisplayOption(
-        option: Int,
-        optionTime: Int,
-    ){
-        //  SendPermissionNotification()
-        when(option){
+    fun SelectDisplayOption(option: Int, optionTime: Int) {
+        when (option) {
             1 -> HourSelector(
                 modifier = Modifier,
                 onDismissRequest = { viewModel.closeBottomSheet() },
                 dismissButton = { viewModel.closeBottomSheet() },
-                timeManager = if(optionTime == 1) timeManagerFinish else timeManagerStart,
+                timeManager = if (optionTime == 1) timeManagerFinish else timeManagerStart,
                 composableTimeManager = viewModel
             )
             2 -> DateSelector(
                 onDismissRequest = { viewModel.closeBottomSheet() },
                 dismissButton = { viewModel.closeBottomSheet() },
-                timeManager = if(optionTime == 1) timeManagerFinish else timeManagerStart,
+                timeManager = if (optionTime == 1) timeManagerFinish else timeManagerStart,
                 composableTimeManager = viewModel
             )
         }
     }
-    Box(modifier = modifier.fillMaxSize()) {
-        Column(modifier = Modifier) {
-            // Reutilizamos tu SelectDay de TaskView
-            SelectDay(
-                modifier = Modifier,
-                daySelected = daySelected,
-                onPreviewsDay = { SelectDayTask(2) },
-                onAfterDay = { SelectDayTask(1) }
-            )
 
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = 15.dp),
-                verticalArrangement = Arrangement.spacedBy(25.dp),
-                contentPadding = PaddingValues(bottom = 88.dp)
-            ) {
-                // Aquí iteraremos sobre la lista de clases en el siguiente paso
-                // Por ahora usamos un elemento de prueba para ver el diseño
-                item {
+    Box(modifier = modifier.fillMaxSize()) {
+        Column {
+            SelectDay(modifier = Modifier, daySelected = daySelected, onPreviewsDay = { SelectDayTask(2) }, onAfterDay = { SelectDayTask(1) })
+            LazyColumn(modifier = Modifier.fillMaxSize().padding(top = 15.dp), verticalArrangement = Arrangement.spacedBy(25.dp), contentPadding = PaddingValues(bottom = 88.dp)) {
+                items(items = localSchedules, key = { schedule -> schedule.id }) { schedule ->
+                    val startDateTime = timeManagerStart.setTimeFromMillis(schedule.startTimeMillis)
+                    val finishDateTime = timeManagerFinish.setTimeFromMillis(schedule.endTimeMillis)
+                    val startStr = "${String.format("%02d", startDateTime.hour)}:${String.format("%02d", startDateTime.minute)}"
+                    val endStr = "${String.format("%02d", finishDateTime.hour)}:${String.format("%02d", finishDateTime.minute)}"
+
                     CardForSchedule(
-                        title = "Estructura de Datos",
-                        description = "Aula 302 - Ing. Martínez",
-                        startTime = "08:00",
-                        endTime = "10:00",
+                        title = schedule.subject,
+                        description = schedule.description,
+                        startTime = startStr,
+                        endTime = endStr,
                         onEditClick = {
-                            editOption = true
-                            showBottomSheet = true
+                            val timeStart = TimePickerState(initialHour = startDateTime.hour, initialMinute = startDateTime.minute, is24Hour = true)
+                            val dateStart = LocalDate.of(startDateTime.year, startDateTime.month, startDateTime.dayOfMonth)
+                            val timeEnd = TimePickerState(initialHour = finishDateTime.hour, initialMinute = finishDateTime.minute, is24Hour = true)
+                            val dateEnd = LocalDate.of(finishDateTime.year, finishDateTime.month, finishDateTime.dayOfMonth)
+                            EditSchedule(timeStart, dateStart, timeEnd, dateEnd, schedule)
                         },
-                        onDeleteClick = { /* Borrar Clase */ }
+                        onDeleteClick = { scheduleViewModel?.deleteSchedule(schedule, context) }
                     )
                 }
             }
         }
 
-        // Botón Flotante para agregar (Igual al de Tasks)
         Box(modifier = Modifier.align(Alignment.BottomEnd)) {
-            Button(
-                onClick = {
-                    editOption = false
-                    taskManager.EmptyInfo()
-                    timeManagerStart.ReturnActualTime()
-                    timeManagerFinish.ReturnActualTime()
-                    showBottomSheet = true
-                },
-                modifier = Modifier.size(60.dp),
-                contentPadding = PaddingValues(0.dp)
-            ) {
+            Button(onClick = {
+                editOption = false
+                scheduleManager.EmptyInfo()
+                timeManagerStart.ReturnActualTime()
+                timeManagerFinish.ReturnActualTime()
+                showBottomSheet = true
+            }, modifier = Modifier.size(60.dp), contentPadding = PaddingValues(0.dp)) {
                 Icon(Icons.Default.Add, contentDescription = "Add a class", modifier = Modifier.fillMaxSize())
             }
         }
@@ -375,25 +399,18 @@ fun ScheduleViewUI(
             BottomSheetSchedule(
                 sheetState = sheetState,
                 DismissRequest = { showBottomSheet = false },
-                OpenTimeSelector = { option, optionTime ->
-                    optionDatePicker = option
-                    optionTimes = optionTime
-                    viewModel.openBottomSheet()
-                },
+                OpenTimeSelector = {option, optionTime ->
+                    optionDatePicker = option;
+                    optionTimes = optionTime;
+                    viewModel.openBottomSheet() },
                 timeManagerStart = timeManagerStart,
                 timeManagerFinish = timeManagerFinish,
-                taskManager = taskManager,
-                DoneRequest = {
-                    // Lógica de guardado que implementaremos con el ViewModel
-                    showBottomSheet = false
-                }
+                scheduleManager = scheduleManager,
+                DoneRequest = { DoneSchedules() }
             )
         }
-        if(viewModel.showAlert){
-            SelectDisplayOption(
-                option = optionDatePicker,
-                optionTime = optionTimes,
-            )
+        if (viewModel.showAlert) {
+            SelectDisplayOption(option = optionDatePicker, optionTime = optionTimes)
         }
     }
 }

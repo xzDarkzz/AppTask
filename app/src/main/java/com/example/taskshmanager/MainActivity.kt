@@ -46,8 +46,11 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
+import com.example.taskshmanager.Views.Schedule.ScheduleViewModel
+import com.example.taskshmanager.Views.Schedule.ScheduleViewModelFactory
 import com.example.taskshmanager.Views.Schedule.ScheduleViewUI
 import com.example.taskshmanager.data.AppDataBase
+import com.example.taskshmanager.data.ScheduleRepository
 import com.example.taskshmanager.data.TaskRepository
 import com.example.taskshmanager.ui.TaskViewModel
 import com.example.taskshmanager.ui.TaskViewModelFactory
@@ -68,7 +71,11 @@ class MainActivity : ComponentActivity() {
                 val viewModelTask: TaskViewModel = viewModel(
                     factory = TaskViewModelFactory(repository)
                 )
-                App(modifier = Modifier, viewModelTask, context)
+                val scheduleRepository = remember { ScheduleRepository(database.ScheduleDao()) }
+                val viewModelSchedule: ScheduleViewModel = viewModel(
+                    factory = ScheduleViewModelFactory(scheduleRepository)
+                )
+                App(modifier = Modifier, viewModelTask, viewModelSchedule,context)
             }
         }
     }
@@ -81,6 +88,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun App(modifier: Modifier = Modifier,
         viewModelTask: TaskViewModel? = null,
+        viewModelSchedule: ScheduleViewModel? = null,
         context: Context
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
@@ -195,7 +203,8 @@ fun App(modifier: Modifier = Modifier,
             modifier = Modifier
                 .padding(innerPadding)
                 .padding(10.dp),
-            days = DaysOfTheWeek
+            days = DaysOfTheWeek,
+            scheduleViewModel = viewModelSchedule
         )
     }
 }

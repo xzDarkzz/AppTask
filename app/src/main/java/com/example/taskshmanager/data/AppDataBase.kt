@@ -6,17 +6,20 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.example.taskshmanager.data.Dao.ScheduleDao
 import com.example.taskshmanager.data.Dao.TaskDao
+import com.example.taskshmanager.data.Entity.ScheduleEntity
 import com.example.taskshmanager.data.Entity.TaskEntity
 
 
 @Database(
-    entities = [TaskEntity::class],
-    version = 2,
+    entities = [TaskEntity::class, ScheduleEntity::class],
+    version = 3,
     exportSchema = false
 )
 abstract class AppDataBase : RoomDatabase() {
     abstract fun taskDao(): TaskDao
+    abstract fun ScheduleDao(): ScheduleDao
     companion object {
         @Volatile
         private var INSTANCE: AppDataBase?= null
@@ -26,6 +29,20 @@ abstract class AppDataBase : RoomDatabase() {
                 db.execSQL("ALTER TABLE task_table ADD COLUMN dueDateEndMillis INTEGER NOT NULL DEFAULT 0")
             }
         }
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `schedule_table` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
+                        `subject` TEXT NOT NULL, 
+                        `description` TEXT NOT NULL, 
+                        `day` TEXT NOT NULL, 
+                        `startTimeMillis` INTEGER NOT NULL, 
+                        `endTimeMillis` INTEGER NOT NULL
+                    )
+                """.trimIndent())
+            }
+        }
         fun getDatabase(context: Context): AppDataBase{
             return  INSTANCE ?: synchronized(this){
                 val instance = Room.databaseBuilder(
@@ -33,7 +50,7 @@ abstract class AppDataBase : RoomDatabase() {
                     AppDataBase::class.java,
                     "task_table"
                 )
-                    .addMigrations(MIGRATION_1_2)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                     .build()
                 INSTANCE = instance
                 instance

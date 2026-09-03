@@ -80,11 +80,9 @@ fun Tasks(
     var daySelected = days[indexSelection]
     //Limpieza y filtro de tareas
     if(tasks?.isNotEmpty() == true){
-
         localTasks.clear()
         var newList = tasks.filter { it.day.lowercase() == daySelected.lowercase() }
         localTasks.addAll(newList)
-
     }
     else{
         localTasks.clear()
