@@ -71,7 +71,7 @@ import java.time.LocalDate
 @Composable
 fun CardForSchedule(
     modifier: Modifier = Modifier,
-    title: String,r
+    title: String,
     description: String,
     startTime: String,
     endTime: String,
