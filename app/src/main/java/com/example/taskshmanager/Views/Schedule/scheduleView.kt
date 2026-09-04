@@ -7,8 +7,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,6 +29,7 @@ import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Alarm
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
@@ -38,6 +42,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SheetState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TimePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -52,6 +57,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -66,6 +72,120 @@ import com.example.taskshmanager.Views.composables.SelectDay
 import com.example.taskshmanager.Views.composables.TimeSelector
 import com.example.taskshmanager.data.Domain.Schedule
 import java.time.LocalDate
+
+
+// 1. Componente individual del Chip basado en tu imagen
+@Composable
+fun ActionChip(
+    text: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    // Colores basados en la imagen (Rosa/Rojo para seleccionado, Azul para no seleccionado)
+    val backgroundColor = if (isSelected) Color(0xFFF04364) else Color(0xFF2C5EE3)
+    val icon = if (isSelected) Icons.Default.Check else Icons.Default.Add
+
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(20.dp),
+        color = backgroundColor,
+        contentColor = Color.White
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
+        ) {
+            Text(text = text, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+            Spacer(modifier = Modifier.width(6.dp))
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(16.dp)
+            )
+        }
+    }
+}
+
+// 2. Lógica y contenedor de los chips
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun DaySelectionChips(
+    selectedDays: (valueOfDay: String) -> Unit
+) {
+    val selectedCustomDays = remember {mutableStateListOf<String>()}
+    var selectedPreset by remember { mutableStateOf("Lunes a Viernes") }
+    val presets = mapOf(
+        "135" to "Lunes - Miércoles - Viernes",
+        "24" to "Martes - Jueves",
+        "12345" to "Lunes a Viernes",
+        "0" to "Personalizado"
+    )
+    val allDays = mapOf(
+        "1" to "Lunes",
+        "2" to "Martes",
+        "3" to "Miércoles",
+        "4" to "Jueves",
+        "5" to "Viernes",
+        "6" to "Sábado",
+        "7" to "Domingo"
+    )
+
+    fun onPresetSelected(preset: String, key: String){
+        selectedPreset = preset
+        selectedDays(key)
+    }
+    fun onCustomDayToggled(dayKey: String){
+        if(selectedCustomDays.contains(dayKey)){
+            selectedCustomDays.remove(dayKey)
+        } else {
+            selectedCustomDays.add(dayKey)
+        }
+
+        val newList = selectedCustomDays.sorted()
+        val resultado = newList.joinToString("")
+        selectedDays(resultado)
+    }
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text("Días de clase:", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(top = 8.dp)
+        ) {
+            presets.forEach { preset ->
+
+                ActionChip(
+                    text = preset.value,
+                    isSelected = selectedPreset == preset.value,
+                    onClick = { onPresetSelected(preset.value, preset.key) }
+                )
+            }
+        }
+
+        // Mostrar días individuales solo si está en "Personalizado"
+        if (selectedPreset == "Personalizado") {
+            Spacer(modifier = Modifier.height(12.dp))
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                allDays.forEach { day ->
+                    val isSelected = selectedCustomDays.contains(day.value)
+                    ActionChip(
+                        text = day.value,
+                        isSelected = isSelected,
+                        onClick = { onCustomDayToggled(day.key)}
+                    )
+                }
+            }
+        }
+        else{
+            selectedCustomDays.clear()
+        }
+    }
+}
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
