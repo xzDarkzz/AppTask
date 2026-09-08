@@ -1,6 +1,8 @@
 package com.example.taskshmanager.Views.Schedule
 
 import android.content.Context
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -10,7 +12,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-
+@RequiresApi(Build.VERSION_CODES.O)
 class ScheduleViewModel(
     private val repository: ScheduleRepository
 ) : ViewModel() {
@@ -22,13 +24,15 @@ class ScheduleViewModel(
             initialValue = emptyList()
         )
 
+
     fun addSchedule(
         subject: String,
         description: String,
         day: String,
         startTimeMillis: Long,
         endTimeMillis: Long,
-        context: Context
+        context: Context,
+        repetDays: String
     ) {
         viewModelScope.launch {
             val newSchedule = Schedule(
@@ -36,13 +40,17 @@ class ScheduleViewModel(
                 description = description,
                 day = day,
                 startTimeMillis = startTimeMillis,
-                endTimeMillis = endTimeMillis
+                endTimeMillis = endTimeMillis,
+                repetDays = repetDays
+
             )
             val id = repository.insertSchedule(newSchedule).toInt()
+            val nextAlarm = NotificationManagerSchedule(startTimeMillis,repetDays).getNextStartAlarm()
+            AlarmManagerSchedule.scheduleClassAlarm(context,id,nextAlarm)
 
-            // TODO: Agendar la alarma de la clase a los 15 y 5 minutos antes
         }
     }
+
 
     fun editSchedule(
         id: Int,
@@ -51,7 +59,8 @@ class ScheduleViewModel(
         day: String,
         startTimeMillis: Long,
         endTimeMillis: Long,
-        context: Context
+        context: Context,
+        repetDays: String
     ) {
         viewModelScope.launch {
             val updatedSchedule = Schedule(
@@ -60,18 +69,21 @@ class ScheduleViewModel(
                 description = description,
                 day = day,
                 startTimeMillis = startTimeMillis,
-                endTimeMillis = endTimeMillis
+                endTimeMillis = endTimeMillis,
+                repetDays = repetDays
             )
             repository.update(updatedSchedule)
+            val nextAlarm = NotificationManagerSchedule(startTimeMillis,repetDays).getNextStartAlarm()
+            AlarmManagerSchedule.scheduleClassAlarm(context,id,nextAlarm)
 
-            // TODO: Re-agendar la alarma con los nuevos horarios
+
         }
     }
 
     fun deleteSchedule(schedule: Schedule, context: Context) {
         viewModelScope.launch {
             repository.delete(schedule)
-            // TODO: Cancelar la alarma si el usuario elimina la clase
+
         }
     }
 }
@@ -80,6 +92,7 @@ class ScheduleViewModelFactory(
     private val repository: ScheduleRepository
 ) : ViewModelProvider.Factory {
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(ScheduleViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")

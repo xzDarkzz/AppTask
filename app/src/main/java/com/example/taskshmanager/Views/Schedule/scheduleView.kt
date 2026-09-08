@@ -21,11 +21,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.InputTransformation
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.maxLength
 import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Alarm
@@ -114,6 +116,7 @@ fun DaySelectionChips(
 ) {
     val selectedCustomDays = remember {mutableStateListOf<String>()}
     var selectedPreset by remember { mutableStateOf("Lunes a Viernes") }
+    var valueOfDaySelection by remember { mutableStateOf("12345")}
     val presets = mapOf(
         "135" to "Lunes - Miércoles - Viernes",
         "24" to "Martes - Jueves",
@@ -132,7 +135,8 @@ fun DaySelectionChips(
 
     fun onPresetSelected(preset: String, key: String){
         selectedPreset = preset
-        selectedDays(key)
+        valueOfDaySelection = key
+        selectedDays(valueOfDaySelection)
     }
     fun onCustomDayToggled(dayKey: String){
         if(selectedCustomDays.contains(dayKey)){
@@ -143,7 +147,8 @@ fun DaySelectionChips(
 
         val newList = selectedCustomDays.sorted()
         val resultado = newList.joinToString("")
-        selectedDays(resultado)
+        valueOfDaySelection = resultado
+        selectedDays(valueOfDaySelection)
     }
 
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -172,7 +177,7 @@ fun DaySelectionChips(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 allDays.forEach { day ->
-                    val isSelected = selectedCustomDays.contains(day.value)
+                    val isSelected = selectedCustomDays.contains(day.key)
                     ActionChip(
                         text = day.value,
                         isSelected = isSelected,
@@ -300,16 +305,20 @@ fun BottomSheetSchedule(
 ) {
     val titleState = rememberTextFieldState(initialText = scheduleManager.title)
     val descriptionState = rememberTextFieldState(initialText = scheduleManager.description)
-
+    var valueOfSelection by remember { mutableStateOf("") }
+    val scrollState = rememberScrollState()
     ModalBottomSheet(
         sheetState = sheetState,
         onDismissRequest = { DismissRequest() }
     ) {
         Box(modifier = Modifier
-            .height(450.dp)
             .fillMaxWidth()
-            .padding(15.dp)) {
-            Column {
+            .padding(15.dp)
+        )
+        {
+            Column(
+                modifier = Modifier.verticalScroll(scrollState)
+            ) {
                 Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
                     OutlinedTextField(
                         modifier = Modifier.fillMaxWidth(),
@@ -324,6 +333,11 @@ fun BottomSheetSchedule(
                         label = { Text("Profesor / Aula") },
                         lineLimits = TextFieldLineLimits.SingleLine,
                         inputTransformation = InputTransformation.maxLength(50)
+                    )
+                    DaySelectionChips(
+                        selectedDays = {valueOfDay ->
+                            valueOfSelection = valueOfDay
+                        }
                     )
                     Column {
                         Text("Start")
@@ -361,7 +375,12 @@ fun BottomSheetSchedule(
                 ) {
                     Button(onClick = { DismissRequest() }) { Text("Cancelar") }
                     Button(onClick = {
-                        scheduleManager.UpdateInfo(titleState.text.toString(), descriptionState.text.toString(), scheduleManager.id)
+                        scheduleManager.UpdateInfo(
+                            titleState.text.toString(),
+                            descriptionState.text.toString(),
+                            scheduleManager.id,
+                            valueOfSelection
+                        )
                         DoneRequest()
                     }
                     ) {
@@ -384,7 +403,8 @@ fun ScheduleViewUI(
     scheduleManager: scheduleManager = viewModel(),
     viewModel: ComposableTimeManager = viewModel(),
     scheduleViewModel: ScheduleViewModel? = null,
-    context: Context = LocalContext.current
+    context: Context = LocalContext.current,
+    SendPermissionNotification : () -> Unit,
 ) {
     var showBottomSheet by remember { mutableStateOf(false) }
     var editOption by remember { mutableStateOf(false) }
@@ -428,7 +448,8 @@ fun ScheduleViewUI(
                 dayOfWeekStr,
                 startMillis,
                 endMillis,
-                context
+                context,
+                scheduleManager.daySelection
             )
             editOption = false
         } else {
@@ -438,7 +459,8 @@ fun ScheduleViewUI(
                 dayOfWeekStr,
                 startMillis,
                 endMillis,
-                context
+                context,
+                scheduleManager.daySelection
             )
         }
 
@@ -458,6 +480,7 @@ fun ScheduleViewUI(
 
     @Composable
     fun SelectDisplayOption(option: Int, optionTime: Int) {
+        SendPermissionNotification()
         when (option) {
             1 -> HourSelector(
                 modifier = Modifier,

@@ -11,5 +11,6 @@ data class ScheduleEntity(
     val description: String, // Profesor o Aula
     val day: String,
     val startTimeMillis: Long,
-    val endTimeMillis: Long
+    val endTimeMillis: Long,
+    val repetDays: String
 )

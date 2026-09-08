@@ -7,6 +7,6 @@ data class Task(
     val description: String,
     val day: String,
     val dueDateMillis : Long,
-    val dueDateEndMillis : Long
+    val dueDateEndMillis : Long,
 ) {
 }

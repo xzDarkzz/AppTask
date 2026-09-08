@@ -6,5 +6,6 @@ data class Schedule(
     val description: String,
     val day: String,
     val startTimeMillis: Long,
-    val endTimeMillis: Long
+    val endTimeMillis: Long,
+    val repetDays: String
 )

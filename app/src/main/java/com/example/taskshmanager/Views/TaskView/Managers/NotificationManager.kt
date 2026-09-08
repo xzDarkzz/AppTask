@@ -1,6 +1,6 @@
 package com.example.taskshmanager.Views.TaskView.Managers
 
-class NotificationManager(val dueDateMillis : Long) {
+class NotificationManagerTask(val dueDateMillis : Long) {
 
 
     private val ahora = System.currentTimeMillis()

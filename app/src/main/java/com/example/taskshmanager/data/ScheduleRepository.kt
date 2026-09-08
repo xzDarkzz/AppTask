@@ -33,6 +33,6 @@ class ScheduleRepository(
 }
 
 // Mappers para convertir entre Entity y Domain
-fun ScheduleEntity.toDomain() = Schedule(id, subject, description, day, startTimeMillis, endTimeMillis)
+fun ScheduleEntity.toDomain() = Schedule(id, subject, description, day, startTimeMillis, endTimeMillis, repetDays)
 fun Schedule.toEntity() =
-    ScheduleEntity(id, subject, description, day, startTimeMillis, endTimeMillis)
+    ScheduleEntity(id, subject, description, day, startTimeMillis, endTimeMillis, repetDays)

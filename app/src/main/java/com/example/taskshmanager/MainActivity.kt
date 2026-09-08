@@ -17,7 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Checklist
-import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -49,6 +49,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.taskshmanager.Views.Schedule.ScheduleViewModel
 import com.example.taskshmanager.Views.Schedule.ScheduleViewModelFactory
 import com.example.taskshmanager.Views.Schedule.ScheduleViewUI
+import com.example.taskshmanager.Views.TaskView.Tasks
 import com.example.taskshmanager.data.AppDataBase
 import com.example.taskshmanager.data.ScheduleRepository
 import com.example.taskshmanager.data.TaskRepository
@@ -96,6 +97,7 @@ fun App(modifier: Modifier = Modifier,
     val DaysOfTheWeek = listOf("Monday","Tuesday","Wednesday","Thursday","Friday","Saturday", "Sunday")
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    var selectIcon by remember { mutableStateOf(0) }
 
     //Para los permisos
     var permissionStatus by remember { mutableStateOf(false) }
@@ -125,6 +127,7 @@ fun App(modifier: Modifier = Modifier,
         }
     }
 
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
@@ -135,7 +138,18 @@ fun App(modifier: Modifier = Modifier,
                 ),
                 title = {
                     Text(fontSize = 25.sp,
-                        text = "Task",
+                        text = when{
+                            selectIcon == 0 -> {
+                                "Task"
+                            }
+                            selectIcon == 1 -> {
+                                "Schedule"
+                            }
+
+                            else -> {
+                                "Task"
+                            }
+                        },
                         color = Color.White
                     )
                 },
@@ -148,14 +162,12 @@ fun App(modifier: Modifier = Modifier,
                     .height(88.dp)
                     .padding(horizontal = 48.dp, vertical = 12.dp)
                     .clip(RoundedCornerShape(32.dp)),
-                // Para una barra flotante personalizada, desactivar insets automáticos
-                // dentro de la NavigationBar evita que el sistema le agregue relleno no deseado abajo:
                 windowInsets = WindowInsets(0)
             ){
                 NavigationBarItem(
                     selected = true,
                     onClick = {
-
+                        selectIcon = 0
                     },
                     icon = {
                         Icon(
@@ -167,6 +179,7 @@ fun App(modifier: Modifier = Modifier,
                 NavigationBarItem(
                     selected = true,
                     onClick = {
+                        selectIcon = 1
                     },
                     icon = {
                         Icon(
@@ -181,7 +194,7 @@ fun App(modifier: Modifier = Modifier,
                     },
                     icon = {
                         Icon(
-                            Icons.Default.DateRange,
+                            Icons.Default.Edit,
                             contentDescription = "Nose",
                         )
                     },
@@ -189,23 +202,31 @@ fun App(modifier: Modifier = Modifier,
             }
         },
     ) { innerPadding ->
-//        Tasks(
-//            modifier = Modifier
-//                .padding(innerPadding)
-//                .padding(10.dp),
-//            days = DaysOfTheWeek,
-//            viewModelTask = viewModelTask,
-//            permissionStatus = permissionStatus,
-//            SendPermissionNotification = { RequestPermissionNotificactions() },
-//            context = context
-//        )
-        ScheduleViewUI(
-            modifier = Modifier
-                .padding(innerPadding)
-                .padding(10.dp),
-            days = DaysOfTheWeek,
-            scheduleViewModel = viewModelSchedule
-        )
+        when{
+            selectIcon == 0 -> {
+                Tasks(
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .padding(10.dp),
+                    days = DaysOfTheWeek,
+                    viewModelTask = viewModelTask,
+                    permissionStatus = permissionStatus,
+                    SendPermissionNotification = { RequestPermissionNotificactions() },
+                    context = context
+                )
+            }
+            selectIcon == 1 -> {
+                ScheduleViewUI(
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .padding(10.dp),
+                    days = DaysOfTheWeek,
+                    scheduleViewModel = viewModelSchedule,
+                    SendPermissionNotification = {RequestPermissionNotificactions()}
+                )
+            }
+        }
+
     }
 }
 

@@ -38,7 +38,8 @@ abstract class AppDataBase : RoomDatabase() {
                         `description` TEXT NOT NULL, 
                         `day` TEXT NOT NULL, 
                         `startTimeMillis` INTEGER NOT NULL, 
-                        `endTimeMillis` INTEGER NOT NULL
+                        `endTimeMillis` INTEGER NOT NULL,
+                        `repetDays` TEXT NOT NULL
                     )
                 """.trimIndent())
             }

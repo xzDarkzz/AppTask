@@ -4,8 +4,8 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.taskshmanager.Views.TaskView.Managers.NotificationManagerTask
 import com.example.taskshmanager.Views.TaskView.alarmFiles.AlarmScheduler
-import com.example.taskshmanager.Views.TaskView.Managers.NotificationManager
 import com.example.taskshmanager.data.Domain.Task
 import com.example.taskshmanager.data.TaskRepository
 import kotlinx.coroutines.flow.SharingStarted
@@ -41,7 +41,7 @@ class TaskViewModel(
                 dueDateEndMillis = dueDateEndMillis
             )
             val id = repository.insertTask(newTask).toInt()
-            val nextAlarm = NotificationManager(dueDateMillis).GetNextStartNotification()
+            val nextAlarm = NotificationManagerTask(dueDateMillis).GetNextStartNotification()
 
             AlarmScheduler.scheduleTaskAlarm(context, id, nextAlarm)
         }
@@ -67,7 +67,7 @@ class TaskViewModel(
                 dueDateEndMillis = dueDateEndMillis
             )
             repository.update(updatedTask)
-            val nextAlarm = NotificationManager(dueDateMillis).GetNextStartNotification()
+            val nextAlarm = NotificationManagerTask(dueDateMillis).GetNextStartNotification()
             AlarmScheduler.scheduleTaskAlarm(context, id, nextAlarm)
         }
     }

@@ -4,7 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import com.example.taskshmanager.Views.TaskView.Managers.NotificationManager
+import com.example.taskshmanager.Views.TaskView.Managers.NotificationManagerTask
 import com.example.taskshmanager.data.AppDataBase
 import com.example.taskshmanager.data.TaskRepository
 import kotlinx.coroutines.CoroutineScope
@@ -37,14 +37,14 @@ class BootReceiver : BroadcastReceiver() {
                         // SI LA TAREA AUN NO SE AH EMPEZADO
                         if (taskEntity.dueDateMillis > ahora) {
 
-                            val nextAlarm = NotificationManager(taskEntity.dueDateMillis).GetNextStartNotification()
+                            val nextAlarm = NotificationManagerTask(taskEntity.dueDateMillis).GetNextStartNotification()
 
                             // Re-agendamos en el AlarmManager
                             AlarmScheduler.scheduleTaskAlarm(context, taskEntity.id, nextAlarm)
                         }
                         //REASIGNACION SI LA TAREA YA SE EMPEZO
                         else{
-                            val nextAlarm = NotificationManager(taskEntity.dueDateEndMillis).GetNextFinishNotification()
+                            val nextAlarm = NotificationManagerTask(taskEntity.dueDateEndMillis).GetNextFinishNotification()
 
                             // Re-agendamos en el AlarmManager
                             AlarmScheduler.scheduleTaskAlarm(context, taskEntity.id, nextAlarm, true)

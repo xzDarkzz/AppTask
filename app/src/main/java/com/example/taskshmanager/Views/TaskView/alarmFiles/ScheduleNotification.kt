@@ -112,7 +112,7 @@ class ScheduleNotification : BroadcastReceiver() {
             //PARA INICIAR LA TAREA
             if (ahoraMillis < task.dueDateMillis) {
                 val proximoLevantamientoMillis =
-                    com.example.taskshmanager.Views.TaskView.Managers.NotificationManager(task.dueDateMillis).GetNextStartNotification()
+                    com.example.taskshmanager.Views.TaskView.Managers.NotificationManagerTask(task.dueDateMillis).GetNextStartNotification()
 
                 // Ajustamos para no pasarnos del tiempo límite de la tarea
                 val finalTrigger = proximoLevantamientoMillis.coerceAtMost(task.dueDateMillis)
@@ -122,7 +122,7 @@ class ScheduleNotification : BroadcastReceiver() {
             //PARA FINALIZAR LA TAREA
             else if(ahoraMillis < task.dueDateEndMillis){
                 val proximoLevantamientoMillis =
-                    com.example.taskshmanager.Views.TaskView.Managers.NotificationManager(task.dueDateEndMillis).GetNextFinishNotification()
+                    com.example.taskshmanager.Views.TaskView.Managers.NotificationManagerTask(task.dueDateEndMillis).GetNextFinishNotification()
 
                 // Ajustamos para no pasarnos del tiempo límite de la tarea
                 val finalTrigger = proximoLevantamientoMillis.coerceAtMost(task.dueDateEndMillis)
