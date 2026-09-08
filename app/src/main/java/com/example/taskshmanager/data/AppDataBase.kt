@@ -34,12 +34,12 @@ abstract class AppDataBase : RoomDatabase() {
                 db.execSQL("""
                     CREATE TABLE IF NOT EXISTS `schedule_table` (
                         `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
-                        `subject` TEXT NOT NULL, 
-                        `description` TEXT NOT NULL, 
-                        `day` TEXT NOT NULL, 
-                        `startTimeMillis` INTEGER NOT NULL, 
-                        `endTimeMillis` INTEGER NOT NULL,
-                        `repetDays` TEXT NOT NULL
+                        `subject` TEXT, 
+                        `description` TEXT, 
+                        `day` TEXT, 
+                        `startTimeMillis` INTEGER, 
+                        `endTimeMillis` INTEGER,
+                        `repetDays` TEXT
                     )
                 """.trimIndent())
             }

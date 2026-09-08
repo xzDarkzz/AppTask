@@ -1,5 +1,6 @@
 package com.example.taskshmanager.Views.Schedule
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -12,11 +13,12 @@ class scheduleManager: ViewModel() {
     var description by mutableStateOf("")
     var daySelection by mutableStateOf("12345")
 
-    fun UpdateInfo(newTitle: String, newDescription: String, idOfTheTask: Int = 0, repetDaySelection: String = ""){
+    fun UpdateInfo(newTitle: String, newDescription: String, idOfTheTask: Int = 0, repetDaySelection: String = "12345"){
         id = idOfTheTask
         title = newTitle
         description = newDescription
         daySelection = repetDaySelection
+        Log.d("CheckSdwas","${daySelection}, ${repetDaySelection}")
     }
     fun EmptyInfo(){
         title = ""

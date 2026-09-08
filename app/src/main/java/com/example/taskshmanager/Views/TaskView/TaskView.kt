@@ -50,7 +50,7 @@ import java.time.LocalDate
 @Composable
 fun Tasks(
     modifier: Modifier = Modifier,
-    days: List<String>,
+    days: Map<Int, String>,
     viewModel: ComposableTimeManager = viewModel(),
     timeManager: TimeManager = remember { TimeManager() },
     timeManagerFinish: TimeManager = remember { TimeManager() },
@@ -77,7 +77,7 @@ fun Tasks(
 
     //Operator tu indicate the UI day
     var indexSelection by remember {mutableIntStateOf(timeManager.currentDayIndex)}
-    var daySelected = days[indexSelection]
+    var daySelected = days.entries.elementAt(indexSelection).value
     //Limpieza y filtro de tareas
     if(tasks?.isNotEmpty() == true){
         localTasks.clear()
@@ -105,7 +105,7 @@ fun Tasks(
                 indexSelection = days.size -1
             }
         }
-        daySelected = days[indexSelection]
+        daySelected = days.entries.elementAt(indexSelection).value
     }
 
     fun changeStateButtomSheet(){
@@ -148,7 +148,7 @@ fun Tasks(
         }
 
         //EXPERIENCIA UI/UX
-        indexSelection = timeManager.CheckIndex()
+        indexSelection = timeManagerFinish.CheckIndex()
 
 
         showBottomSheet = false

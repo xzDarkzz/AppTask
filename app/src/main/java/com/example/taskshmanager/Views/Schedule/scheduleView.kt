@@ -305,7 +305,7 @@ fun BottomSheetSchedule(
 ) {
     val titleState = rememberTextFieldState(initialText = scheduleManager.title)
     val descriptionState = rememberTextFieldState(initialText = scheduleManager.description)
-    var valueOfSelection by remember { mutableStateOf("") }
+    var valueOfSelection by remember { mutableStateOf("12345") }
     val scrollState = rememberScrollState()
     ModalBottomSheet(
         sheetState = sheetState,
@@ -397,7 +397,7 @@ fun BottomSheetSchedule(
 @Composable
 fun ScheduleViewUI(
     modifier: Modifier = Modifier,
-    days: List<String>,
+    days: Map<Int, String>,
     timeManagerStart: TimeManager = remember { TimeManager() },
     timeManagerFinish: TimeManager = remember { TimeManager() },
     scheduleManager: scheduleManager = viewModel(),
@@ -413,7 +413,7 @@ fun ScheduleViewUI(
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var indexSelection by remember { mutableIntStateOf(timeManagerStart.currentDayIndex) }
-    var daySelected = days[indexSelection]
+    var daySelected = days.entries.elementAt(indexSelection)
 
     val schedulesState = scheduleViewModel?.scheduleState?.collectAsState(initial = emptyList())
     val schedules = schedulesState?.value
@@ -421,7 +421,10 @@ fun ScheduleViewUI(
 
     if (schedules?.isNotEmpty() == true) {
         localSchedules.clear()
-        val newList = schedules.filter { it.day.lowercase() == daySelected.lowercase() }
+        val newList = schedules.filter {
+            val valueDays = it.repetDays.map { it.toString().toInt() }.sorted()
+            valueDays.contains(daySelected.key)
+        }
         localSchedules.addAll(newList)
     } else {
         localSchedules.clear()
@@ -432,7 +435,7 @@ fun ScheduleViewUI(
             1 -> if (indexSelection < days.size - 1) indexSelection++ else indexSelection = 0
             2 -> if (indexSelection > 0) indexSelection-- else indexSelection = days.size - 1
         }
-        daySelected = days[indexSelection]
+        daySelected = days.entries.elementAt(indexSelection)
     }
 
     fun DoneSchedules() {
@@ -500,7 +503,7 @@ fun ScheduleViewUI(
 
     Box(modifier = modifier.fillMaxSize()) {
         Column {
-            SelectDay(modifier = Modifier, daySelected = daySelected, onPreviewsDay = { SelectDayTask(2) }, onAfterDay = { SelectDayTask(1) })
+            SelectDay(modifier = Modifier, daySelected = daySelected.value, onPreviewsDay = { SelectDayTask(2) }, onAfterDay = { SelectDayTask(1) })
             LazyColumn(modifier = Modifier.fillMaxSize().padding(top = 15.dp), verticalArrangement = Arrangement.spacedBy(25.dp), contentPadding = PaddingValues(bottom = 88.dp)) {
                 items(items = localSchedules, key = { schedule -> schedule.id }) { schedule ->
                     val startDateTime = timeManagerStart.setTimeFromMillis(schedule.startTimeMillis)

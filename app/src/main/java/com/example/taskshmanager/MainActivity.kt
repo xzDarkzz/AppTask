@@ -94,7 +94,15 @@ fun App(modifier: Modifier = Modifier,
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     val navController = rememberNavController()
-    val DaysOfTheWeek = listOf("Monday","Tuesday","Wednesday","Thursday","Friday","Saturday", "Sunday")
+    val DaysOfTheWeek = mapOf(
+        1 to "Monday",
+        2 to "Tuesday",
+        3 to "Wednesday",
+        4 to "Thursday",
+        5 to "Friday",
+        6 to "Saturday",
+        7 to "Sunday"
+    )
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var selectIcon by remember { mutableStateOf(0) }
