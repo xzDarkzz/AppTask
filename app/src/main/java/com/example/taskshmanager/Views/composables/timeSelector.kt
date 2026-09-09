@@ -3,21 +3,28 @@ package com.example.taskshmanager.Views.composables
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Alarm
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.taskshmanager.Views.TimeManager
@@ -25,78 +32,86 @@ import com.example.taskshmanager.Views.TimeManager
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun TimeSelector(
-    modifier: Modifier,
-    OpenTimeSelector: (option: Int, optionTimeDate:Int) -> Unit,
+    modifier: Modifier = Modifier,
+    OpenTimeSelector: (option: Int, optionTimeDate: Int) -> Unit,
     timeManager: TimeManager,
     timeManagerFinish: TimeManager,
-    optionTime:Int = 0
-){
+    optionTime: Int = 0
+) {
+    val activeTimeManager = if (optionTime == 1) timeManagerFinish else timeManager
 
-    Row(modifier = Modifier
-        .fillMaxWidth()
-        .height(58.dp), horizontalArrangement = Arrangement.SpaceAround) {
+    val formattedDate = "${String.format("%02d", activeTimeManager.dayOfMonth)}/${String.format("%02d", activeTimeManager.month)}"
+    val formattedTime = "${String.format("%02d", activeTimeManager.hour)}:${String.format("%02d", activeTimeManager.minute)}"
+
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(64.dp),
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+    ) {
         Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(5.dp)
-        ){
-            Icon(
-                modifier = Modifier.size(25.dp),
-                imageVector = Icons.Default.CalendarToday,
-                contentDescription = "CalendarIcon",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            TextButton(onClick = {OpenTimeSelector(2, optionTime)}, modifier = Modifier) {
-                Text(
-                    if(optionTime == 1){
-                        "${String.format("%02d", timeManagerFinish.dayOfMonth)}/${
-                            String.format(
-                                "%02d",
-                                timeManagerFinish.month
-                            )
-                        }"
-                    } else {
-                        "${String.format("%02d", timeManager.dayOfMonth)}/${
-                            String.format(
-                                "%02d",
-                                timeManager.month
-                            )
-                        }"
-                    },
-                    fontSize = 35.sp
-                )
-            }
-        }
-        VerticalDivider(thickness = 2.dp)
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(5.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 12.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                modifier = Modifier.size(28.dp),
-                imageVector = Icons.Default.Alarm,
-                contentDescription = "AlarmIcon",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            TextButton(onClick = {OpenTimeSelector(1, optionTime)}) {
-                Text(if (optionTime == 1){
-                    "${String.format("%02d", timeManagerFinish.hour)}:${
-                        String.format(
-                            "%02d",
-                            timeManagerFinish.minute
-                        )
-                    }"
-                } else{
-                    "${String.format("%02d", timeManager.hour)}:${
-                        String.format(
-                            "%02d",
-                            timeManager.minute
-                        )
-                    }"
-                },
-                    fontSize = 35.sp
+            // Selector de Fecha
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Icon(
+                    modifier = Modifier.size(20.dp),
+                    imageVector = Icons.Default.CalendarToday,
+                    contentDescription = "Icono Fecha",
+                    tint = MaterialTheme.colorScheme.primary
                 )
+                TextButton(
+                    onClick = { OpenTimeSelector(2, optionTime) },
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp)
+                ) {
+                    Text(
+                        text = formattedDate,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+
+            VerticalDivider(
+                modifier = Modifier
+                    .fillMaxHeight(0.6f)
+                    .padding(horizontal = 4.dp),
+                thickness = 1.dp,
+                color = MaterialTheme.colorScheme.outlineVariant
+            )
+
+            // Selector de Hora
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Icon(
+                    modifier = Modifier.size(22.dp),
+                    imageVector = Icons.Default.Alarm,
+                    contentDescription = "Icono Hora",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                TextButton(
+                    onClick = { OpenTimeSelector(1, optionTime) },
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp)
+                ) {
+                    Text(
+                        text = formattedTime,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
             }
         }
     }
-
 }

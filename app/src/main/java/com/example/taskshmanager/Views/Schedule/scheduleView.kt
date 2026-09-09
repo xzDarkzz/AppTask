@@ -46,7 +46,9 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePickerState
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -68,10 +70,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.taskshmanager.Views.ComposableTimeManager
 import com.example.taskshmanager.Views.TimeManager
-import com.example.taskshmanager.Views.composables.DateSelector
 import com.example.taskshmanager.Views.composables.HourSelector
 import com.example.taskshmanager.Views.composables.SelectDay
-import com.example.taskshmanager.Views.composables.TimeSelector
 import com.example.taskshmanager.data.Domain.Schedule
 import java.time.LocalDate
 
@@ -291,13 +291,117 @@ fun CardForSchedule(
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun TimeSelectorSchedule(
+    modifier: Modifier = Modifier,
+    OpenTimeSelector: (optionTimeDate: Int) -> Unit,
+    timeManager: TimeManager,
+    timeManagerFinish: TimeManager,
+    optionTime: Int = 0
+) {
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(80.dp),
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Columna de Inicio
+            Column(
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "Inicio",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Icon(
+                        modifier = Modifier.size(20.dp),
+                        imageVector = Icons.Default.Alarm,
+                        contentDescription = "Icono inicio",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    TextButton(
+                        onClick = { OpenTimeSelector(1) },
+                        contentPadding = PaddingValues(0.dp)
+                    ) {
+                        Text(
+                            text = "${String.format("%02d", timeManager.hour)}:${String.format("%02d", timeManager.minute)}",
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+            }
+
+            VerticalDivider(
+                modifier = Modifier
+                    .fillMaxHeight(0.7f)
+                    .padding(horizontal = 8.dp),
+                thickness = 1.dp,
+                color = MaterialTheme.colorScheme.outlineVariant
+            )
+
+            // Columna de Fin
+            Column(
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "Fin",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Icon(
+                        modifier = Modifier.size(20.dp),
+                        imageVector = Icons.Default.Alarm,
+                        contentDescription = "Icono fin",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    TextButton(
+                        onClick = { OpenTimeSelector(2) },
+                        contentPadding = PaddingValues(0.dp)
+                    ) {
+                        Text(
+                            text = "${String.format("%02d", timeManagerFinish.hour)}:${String.format("%02d", timeManagerFinish.minute)}",
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BottomSheetSchedule(
     modifier: Modifier = Modifier,
     sheetState: SheetState,
     DismissRequest: () -> Unit,
-    OpenTimeSelector: (option: Int, optionTime: Int) -> Unit,
+    OpenTimeSelector: (optionTime: Int) -> Unit,
     timeManagerStart: TimeManager,
     timeManagerFinish: TimeManager,
     scheduleManager: scheduleManager,
@@ -339,37 +443,20 @@ fun BottomSheetSchedule(
                             valueOfSelection = valueOfDay
                         }
                     )
-                    Column {
-                        Text("Start")
-                        TimeSelector(
-                            modifier = Modifier,
-                            OpenTimeSelector = { option, optionTime ->
-                                OpenTimeSelector(
-                                    option,
-                                    optionTime
-                                )
-                            },
-                            timeManager = timeManagerStart,
-                            timeManagerFinish = timeManagerFinish,
-                            optionTime = 0
-                        )
-                        Text("End")
-                        TimeSelector(
-                            modifier = Modifier,
-                            OpenTimeSelector = { option, optionTime ->
-                                OpenTimeSelector(
-                                    option,
-                                    optionTime
-                                )
-                            },
-                            timeManager = timeManagerStart,
-                            timeManagerFinish = timeManagerFinish,
-                            optionTime = 1
-                        )
-                    }
+                    TimeSelectorSchedule(
+                        modifier = Modifier,
+                        OpenTimeSelector = { optionTime ->
+                            OpenTimeSelector(
+                                optionTime
+                            )
+                        },
+                        timeManager = timeManagerStart,
+                        timeManagerFinish = timeManagerFinish,
+                        optionTime = 0
+                    )
                 }
                 Row(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize().padding(8.dp),
                     verticalAlignment = Alignment.Bottom,
                     horizontalArrangement = Arrangement.spacedBy(10.dp, alignment = Alignment.End)
                 ) {
@@ -482,23 +569,15 @@ fun ScheduleViewUI(
     }
 
     @Composable
-    fun SelectDisplayOption(option: Int, optionTime: Int) {
+    fun SelectDisplayOption(optionTime: Int) {
         SendPermissionNotification()
-        when (option) {
-            1 -> HourSelector(
-                modifier = Modifier,
-                onDismissRequest = { viewModel.closeBottomSheet() },
-                dismissButton = { viewModel.closeBottomSheet() },
-                timeManager = if (optionTime == 1) timeManagerFinish else timeManagerStart,
-                composableTimeManager = viewModel
-            )
-            2 -> DateSelector(
-                onDismissRequest = { viewModel.closeBottomSheet() },
-                dismissButton = { viewModel.closeBottomSheet() },
-                timeManager = if (optionTime == 1) timeManagerFinish else timeManagerStart,
-                composableTimeManager = viewModel
-            )
-        }
+        HourSelector(
+            modifier = Modifier,
+            onDismissRequest = { viewModel.closeBottomSheet() },
+            dismissButton = { viewModel.closeBottomSheet() },
+            timeManager = if (optionTime == 1) timeManagerStart else timeManagerFinish,
+            composableTimeManager = viewModel
+        )
     }
 
     Box(modifier = modifier.fillMaxSize()) {
@@ -545,8 +624,7 @@ fun ScheduleViewUI(
             BottomSheetSchedule(
                 sheetState = sheetState,
                 DismissRequest = { showBottomSheet = false },
-                OpenTimeSelector = {option, optionTime ->
-                    optionDatePicker = option;
+                OpenTimeSelector = {optionTime ->
                     optionTimes = optionTime;
                     viewModel.openBottomSheet() },
                 timeManagerStart = timeManagerStart,
@@ -556,7 +634,7 @@ fun ScheduleViewUI(
             )
         }
         if (viewModel.showAlert) {
-            SelectDisplayOption(option = optionDatePicker, optionTime = optionTimes)
+            SelectDisplayOption(optionTime = optionTimes)
         }
     }
 }

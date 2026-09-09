@@ -34,13 +34,14 @@ class BootReceiverSchedule : BroadcastReceiver() {
                     schedules.forEach { schedule ->
                         // Re-agendar todas las clases usando tu lógica
                         val manager = NotificationManagerSchedule(schedule.startTimeMillis, schedule.repetDays)
-                        var nextTrigger = manager.getNextStartAlarm()
+                        var (_,nextTrigger) = manager.getNextStartAlarm()
                         val tiempoRestante = schedule.startTimeMillis - ahora
                         if (nextTrigger > 0L) {
                             if(tiempoRestante <= 0){
                                 val dayOfWeeK = Instant.ofEpochMilli(nextTrigger).atZone(ZoneId.systemDefault()).toLocalDateTime().dayOfWeek.toString()
                                 //Se actualiza la base de datos
                                 val scheduleNew = Schedule(schedule.id,schedule.subject,schedule.description,dayOfWeeK,nextTrigger,schedule.endTimeMillis, schedule.repetDays)
+                                repository.update(scheduleNew)
                                 nextTrigger = nextTrigger - 15*60*1000L
                                 AlarmManagerSchedule.scheduleClassAlarm(context, schedule.id, nextTrigger)
 

@@ -2,6 +2,7 @@ package com.example.taskshmanager.Views.Schedule
 
 import android.content.Context
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -12,6 +13,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+
 @RequiresApi(Build.VERSION_CODES.O)
 class ScheduleViewModel(
     private val repository: ScheduleRepository
@@ -34,7 +36,18 @@ class ScheduleViewModel(
         context: Context,
         repetDays: String
     ) {
+        var startTimeMillis = startTimeMillis
         viewModelScope.launch {
+            val (changeDate,nextAlarm) = NotificationManagerSchedule(startTimeMillis,repetDays).getNextStartAlarm()
+            var nextNotification: Long
+            if(changeDate){
+                startTimeMillis = nextAlarm
+                Log.d("CambioDeHora", "${startTimeMillis}")
+                nextNotification = nextAlarm - 15*60*1000L
+            }
+            else{
+                nextNotification = nextAlarm
+            }
             val newSchedule = Schedule(
                 subject = subject,
                 description = description,
@@ -45,8 +58,7 @@ class ScheduleViewModel(
 
             )
             val id = repository.insertSchedule(newSchedule).toInt()
-            val nextAlarm = NotificationManagerSchedule(startTimeMillis,repetDays).getNextStartAlarm()
-            AlarmManagerSchedule.scheduleClassAlarm(context,id,nextAlarm)
+            AlarmManagerSchedule.scheduleClassAlarm(context,id,nextNotification)
 
         }
     }
@@ -62,7 +74,17 @@ class ScheduleViewModel(
         context: Context,
         repetDays: String
     ) {
+        var startTimeMillis = startTimeMillis
         viewModelScope.launch {
+            val (changeDate,nextAlarm) = NotificationManagerSchedule(startTimeMillis,repetDays).getNextStartAlarm()
+            var nextNotification: Long
+            if(changeDate){
+                startTimeMillis = nextAlarm
+                nextNotification = nextAlarm - 15*60*1000L
+            }
+            else{
+                nextNotification = nextAlarm
+            }
             val updatedSchedule = Schedule(
                 id = id,
                 subject = subject,
@@ -73,8 +95,7 @@ class ScheduleViewModel(
                 repetDays = repetDays
             )
             repository.update(updatedSchedule)
-            val nextAlarm = NotificationManagerSchedule(startTimeMillis,repetDays).getNextStartAlarm()
-            AlarmManagerSchedule.scheduleClassAlarm(context,id,nextAlarm)
+            AlarmManagerSchedule.scheduleClassAlarm(context,id,nextNotification)
 
 
         }
