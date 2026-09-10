@@ -8,6 +8,7 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import com.example.taskshmanager.AppThemeColor // Asegúrate de que esta ruta coincida con donde declaraste AppThemeColor
 
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
@@ -20,25 +21,40 @@ private val LightColorScheme = lightColorScheme(
     secondary = PurpleGrey40,
     tertiary = Pink40
 
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
 )
 
 @Composable
 fun TaskShManagerTheme(
     darkTheme: Boolean = false,
-    // Dynamic color is available on Android 12+
     dynamicColor: Boolean = false,
+    customAppTheme: AppThemeColor? = null,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
+        // Si tenemos un tema personalizado (el que se lee de DataStore), lo usamos:
+        customAppTheme != null -> {
+            if (darkTheme) {
+                darkColorScheme(
+                    primary = customAppTheme.primary,
+                    onPrimary = customAppTheme.onPrimary,
+                    surface = customAppTheme.surface,
+                    onSurface = customAppTheme.onSurface,
+                    primaryContainer = customAppTheme.primary, // Aplica a la TopAppBar
+                    onPrimaryContainer = customAppTheme.onPrimary
+                )
+            } else {
+                lightColorScheme(
+                    primary = customAppTheme.primary,
+                    onPrimary = customAppTheme.onPrimary,
+                    surface = customAppTheme.surface,
+                    onSurface = customAppTheme.onSurface,
+                    primaryContainer = customAppTheme.primary, // Aplica a la TopAppBar
+                    onPrimaryContainer = customAppTheme.onPrimary
+                )
+            }
+        }
+
+        // Si no hay tema seleccionado, usamos el comportamiento por defecto de Material 3
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)

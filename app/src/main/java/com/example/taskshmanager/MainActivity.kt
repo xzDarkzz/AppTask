@@ -17,7 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Checklist
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -31,6 +31,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,6 +51,7 @@ import com.example.taskshmanager.Views.Schedule.ScheduleViewModel
 import com.example.taskshmanager.Views.Schedule.ScheduleViewModelFactory
 import com.example.taskshmanager.Views.Schedule.ScheduleViewUI
 import com.example.taskshmanager.Views.TaskView.Tasks
+import com.example.taskshmanager.Views.ThemeSelectorDialog
 import com.example.taskshmanager.data.AppDataBase
 import com.example.taskshmanager.data.ScheduleRepository
 import com.example.taskshmanager.data.TaskRepository
@@ -58,15 +60,17 @@ import com.example.taskshmanager.ui.TaskViewModelFactory
 import com.example.taskshmanager.ui.theme.TaskShManagerTheme
 import kotlinx.coroutines.launch
 
-
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            TaskShManagerTheme {
-                val context = LocalContext.current
+            val context = LocalContext.current
+            val themePreferences = remember { ThemePreferences(context) }
+            val currentThemeId by themePreferences.selectedThemeId.collectAsState(initial = "default")
+            val selectedTheme = ThemePalette.options.find { it.id == currentThemeId } ?: ThemePalette.options[0]
+            TaskShManagerTheme(customAppTheme = selectedTheme) {
                 val database = remember { AppDataBase.getDatabase(context) }
                 val repository = remember { TaskRepository(database.taskDao()) }
                 val viewModelTask: TaskViewModel = viewModel(
@@ -76,7 +80,14 @@ class MainActivity : ComponentActivity() {
                 val viewModelSchedule: ScheduleViewModel = viewModel(
                     factory = ScheduleViewModelFactory(scheduleRepository)
                 )
-                App(modifier = Modifier, viewModelTask, viewModelSchedule,context)
+                App(
+                    modifier = Modifier,
+                    viewModelTask,
+                    viewModelSchedule,
+                    context,
+                    themePreferences = themePreferences,
+                    currentThemeId = currentThemeId
+                )
             }
         }
     }
@@ -84,13 +95,14 @@ class MainActivity : ComponentActivity() {
 
 
 @RequiresApi(Build.VERSION_CODES.O)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun App(modifier: Modifier = Modifier,
         viewModelTask: TaskViewModel? = null,
         viewModelSchedule: ScheduleViewModel? = null,
-        context: Context
+        context: Context,
+        themePreferences: ThemePreferences,
+        currentThemeId: String
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     val navController = rememberNavController()
@@ -106,6 +118,10 @@ fun App(modifier: Modifier = Modifier,
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var selectIcon by remember { mutableStateOf(0) }
+
+    // --- NUEVAS VARIABLES PARA EL TEMA ---
+    var showThemeDialog by remember { mutableStateOf(false) }
+    // -------------------------------------
 
     //Para los permisos
     var permissionStatus by remember { mutableStateOf(false) }
@@ -126,9 +142,9 @@ fun App(modifier: Modifier = Modifier,
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     fun RequestPermissionNotificactions(){
         if(ContextCompat.checkSelfPermission(
-            context, android.Manifest.permission.POST_NOTIFICATIONS
+                context, android.Manifest.permission.POST_NOTIFICATIONS
             ) != PackageManager.PERMISSION_GRANTED
-            ){
+        ){
             permisssionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
         } else{
             permissionStatus = true
@@ -199,10 +215,11 @@ fun App(modifier: Modifier = Modifier,
                 NavigationBarItem(
                     selected = true,
                     onClick = {
+                        showThemeDialog = true // SE ABRE EL MENÚ AL DAR CLIC AQUÍ
                     },
                     icon = {
                         Icon(
-                            Icons.Default.Edit,
+                            Icons.Default.Palette, // CAMBIADO EL ICONO A LA PALETA
                             contentDescription = "Nose",
                         )
                     },
@@ -235,6 +252,20 @@ fun App(modifier: Modifier = Modifier,
             }
         }
 
+        // --- DIÁLOGO FLOTANTE DE PERSONALIZACIÓN INYECTADO AQUÍ ---
+        if (showThemeDialog) {
+            ThemeSelectorDialog(
+                currentThemeId = currentThemeId,
+                onDismissRequest = { showThemeDialog = false },
+                onThemeSelect = { newThemeId ->
+                    scope.launch {
+                        themePreferences.saveThemeId(newThemeId)
+                    }
+                    showThemeDialog = false
+                }
+            )
+        }
+
     }
 }
 
@@ -247,7 +278,11 @@ fun App(modifier: Modifier = Modifier,
 )
 @Composable
 fun GreetingPreview() {
+    val context = LocalContext.current
+    val themePreferences = remember { ThemePreferences(context) }
+    val currentThemeId by themePreferences.selectedThemeId.collectAsState(initial = "default")
+    val selectedTheme = ThemePalette.options.find { it.id == currentThemeId } ?: ThemePalette.options[0]
     TaskShManagerTheme {
-        App(modifier = Modifier, context =LocalContext.current)
+        App(modifier = Modifier, context = context, themePreferences = themePreferences, currentThemeId = currentThemeId)
     }
 }

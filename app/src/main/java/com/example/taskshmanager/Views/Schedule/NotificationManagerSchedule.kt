@@ -31,7 +31,7 @@ class NotificationManagerSchedule(
                     nextAlarm = ((dueDateStartMillis - result*24*60*60*1000L) + 7*24*60*60*1000L)
 
                 }else{
-                    var valuesOrder = values.map {it -valueOfTheDay}.sorted().filter { it >= 0 }
+                    var valuesOrder = values.map {it -valueOfTheDay}.sorted().filter { it > 0 }
                     nextAlarm = dueDateStartMillis + valuesOrder[0]*24*60*60*1000L
 
                 }

@@ -6,14 +6,14 @@ plugins {
 
 android {
     namespace = "com.example.taskshmanager"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.example.taskshmanager"
         minSdk = 24
-        targetSdk = 36
-        versionCode = 4
-        versionName = "2.1"
+        targetSdk = 37
+        versionCode = 5
+        versionName = "3.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -59,6 +59,8 @@ dependencies {
     // Navegación en Compose (sin el generator antiguo que rompía el XML)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.ui)
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
+    implementation(libs.androidx.ui.graphics)
 
     // Tests & Debug
     testImplementation(libs.junit)
