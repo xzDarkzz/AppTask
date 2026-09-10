@@ -203,7 +203,7 @@ fun CardForSchedule(
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit
 ) {
-    val accentColor = MaterialTheme.colorScheme.tertiary
+    val accentColor = MaterialTheme.colorScheme.primary
 
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),

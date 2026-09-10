@@ -37,7 +37,7 @@ class NotificationManagerSchedule(
                 }
             }else{
                 modifeDate = false
-                val quinceMinutosEnMilis = 10*60*1000L
+                val quinceMinutosEnMilis = 15*60*1000L
                 val cincoMinutosEnMilis = 5*60*1000L
                 nextAlarm = when{
                     tiempoRestante <= cincoMinutosEnMilis -> {
