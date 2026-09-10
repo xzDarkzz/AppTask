@@ -33,7 +33,7 @@ class ScheduleViewNotification : BroadcastReceiver() {
             val tiempoRestante = schedule.startTimeMillis - ahora
 
             val (title,description) = when{
-                tiempoRestante <= schedule.startTimeMillis -> {
+                tiempoRestante <= 0 -> {
                     Pair("YA EMPEZO", "Tu clase: ${schedule.subject} acaba de empezar")
                 }
                 tiempoRestante <= 5*60*1000L -> {
